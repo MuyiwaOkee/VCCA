@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import "./globals.css";
-
 // Import the styles:
 import '@visa/nova-styles/styles.css';
 // Import your desired theme:
 import '@visa/nova-styles/themes/visa-light/index.css';
+import "./globals.css";
+// Compontents
+import DefaultFooter from "@/components/DefaultFooter";
 
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <DefaultFooter/>
       </body>
     </html>
   );
