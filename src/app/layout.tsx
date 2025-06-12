@@ -13,7 +13,7 @@ import { Noto_Sans } from 'next/font/google'
 export const metadata: Metadata = {
   title: {
     default: "VCCA",
-    template: "%s | VCCA"
+    template: "%s | VCCA  - Muyiwa Oke"
   },
   description: "Built to resemble VISA's internal tools and VCA service. Developed by Muyiwa Oke",
 };
