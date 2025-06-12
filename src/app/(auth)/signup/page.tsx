@@ -6,6 +6,12 @@ import {
 import Link from 'next/link';
 import { ErrorInput } from '@/components/ErrorInput';
 import { ComboboxItem, ErrorCombobox } from '@/components/ErrorCombobox';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Signup",
+  description: "Signup page",
+};
 
 const SignupPage = () => {
   return (
