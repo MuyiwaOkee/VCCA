@@ -16,7 +16,7 @@ const LoginModal = () => {
             <section className="self-stretch flex flex-col justify-start items-center gap-1">
                 <div className="inline-flex justify-center items-center gap-4">
                     <LogoIcon width={85} height={22}/>
-                    <h2 className="justify-start text-Color-Visa-accent-accent-app-name text-3xl font-semibold leading-10 tracking-wide">Login</h2>
+                    <h2 className="justify-start text-[#1434CB] text-3xl font-semibold leading-10 tracking-wide">Login</h2>
                 </div>
                 <p className="hidden self-stretch text-center justify-start text-Color-Messaging-negative-text text-sm font-semibold leading-none">Connection to server failed. Please try again later</p>
             </section>
