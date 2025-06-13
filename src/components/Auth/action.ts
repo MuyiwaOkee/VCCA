@@ -131,28 +131,4 @@ export const Signup = async (_prevState: any, formData: FormData):Promise<Signup
                 }
             };
     }
-
-//     // checks the user input against the schemea
-//    const result = loginSchema.safeParse(formDataObject);
-
-//     if(!result.success) {
-//         return {
-//             errors: result.error.flatten().fieldErrors
-//         };
-//     }
-
-//     // sends the user input against the actual user information
-//     if(formDataObject.email !== testUser.email || formDataObject.password !== testUser.password) {
-//         return {
-//             errors: {
-//                 email: ["Email or password is wrong"],
-//                 password: undefined
-//             }
-//         }
-//     }
-
-//     await CreateSession(formDataObject.email);
-
-//     // create session and redirect
-//     redirect('/dashboard');
 }
