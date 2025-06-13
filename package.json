@@ -12,9 +12,12 @@
     "@visa/nova-icons-react": "^2.0.4",
     "@visa/nova-react": "^2.5.4",
     "downshift": "^9.0.9",
+    "jose": "^6.0.11",
     "next": "15.3.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
+    "zod": "^3.25.63"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

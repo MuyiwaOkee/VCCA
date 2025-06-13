@@ -1,15 +1,18 @@
-import React from 'react'
-import { DefaultInput } from "@/components/DefaultInput";
+"use client"
+import React, { useActionState } from 'react'
 import LogoIcon from "@/icons/logo";
 import {
   Button
 } from "@visa/nova-react";
 import Link from 'next/link';
 import { ErrorInput } from '../ErrorInput';
+import { Login } from './action';
 
 const LoginModal = () => {
+    const [state, loginAction] = useActionState(Login, undefined);
+    
   return (
-    <form className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between items-center">
+    <form action={loginAction} className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between items-center">
         {/* Main form content */}
         <section className="self-stretch  h-80 flex flex-col justify-start items-center gap-2">
             {/* Title */}
@@ -22,16 +25,16 @@ const LoginModal = () => {
             </section>
             {/* Inputs */}
             <section className="self-stretch flex flex-col justify-start items-start gap-4">
-                <ErrorInput id='input-login-email' label='Email' isRequired errorText='Please use a valid email'/>
+                <ErrorInput id='email' label='Email' isRequired errorText={state?.errors.email?.join(', ')} autocomplete='email'/>
                 <div className="self-stretch inline-flex flex-col justify-start items-start gap-2">
-                    <DefaultInput id='input-login-password' label='Password' isRequired description='Password must have atleast 8 charcters'/>
+                    <ErrorInput id='password' label='Password' isRequired description='Password must have atleast 8 charcters' autocomplete='password' errorText={state?.errors.password?.join(', ')}/>
                     <Link href='/forgot-password' className="w-72 justify-start text-Color-Text-text text-xs font-semibold underline leading-none">Forgot password?</Link>
                 </div>
             </section>
         </section>
         {/* Actions */}
         <section className="flex flex-col justify-start items-center gap-6">
-            <Button className='w-32 min-h-6 px-3.5 py-2.5'>Login</Button>
+            <Button className='w-32 min-h-6 px-3.5 py-2.5' type='submit'>Login</Button>
             <Link href='/signup' className="justify-start text-Color-Text-text text-xs font-semibold underline leading-none">Don't have an account? Sign up</Link>
         </section>
 </form>
