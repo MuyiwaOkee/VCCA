@@ -9,7 +9,7 @@ type UserType = {
 }
 
 const testUser:UserType = {
-    email: "muyiwaokee@gmail.com",
+    email: "youshould@subscribe.com",
     password: '12345678'
 }
 
