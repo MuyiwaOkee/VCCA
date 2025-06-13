@@ -95,6 +95,7 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
               buttonSize="small"
               colorScheme="tertiary"
               iconButton
+              type='button'
               {...getToggleButtonProps()}
             >
               {isOpen ? <VisaChevronUpTiny /> : <VisaChevronDownTiny />}

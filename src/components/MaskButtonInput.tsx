@@ -26,6 +26,7 @@ export const MaskButtonInput = ({ id, label, isRequired, description, errorText,
           colorScheme="tertiary"
           iconButton
           onClick={() => setShowPassword(!showPassword)}
+          type='button'
         >
           {showPassword ? <VisaPasswordHideTiny /> : <VisaPasswordShowTiny />}
         </Button>
