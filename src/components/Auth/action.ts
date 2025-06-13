@@ -8,6 +8,13 @@ type UserType = {
     password: string
 }
 
+type SignupType = {
+    email?: string,
+    password?: string,
+    role?: string,
+    sector?: string
+}
+
 const testUser:UserType = {
     email: "youshould@subscribe.com",
     password: '12345678'
@@ -47,4 +54,72 @@ export const Login = async (_prevState: any, formData: FormData) => {
 
     // create session and redirect
     redirect('/dashboard');
+}
+
+export type SignupOutput = {
+    section: 'EmailPassword' | 'UserRole',
+    errors: {
+        email?: string[] | undefined;
+        password?: string[] | undefined;
+        roleCombobox?: string[] | undefined;
+        sectorCombobox?: string[] | undefined;
+    }
+}
+
+export const Signup = async (_prevState: any, formData: FormData):Promise<SignupOutput> =>  {
+    const formDataObject = Object.fromEntries(formData) as SignupType;
+
+    // find the section of the signup process there at, and then run the processes for that section
+    if('email' in formDataObject) {
+        const result = loginSchema.safeParse(formDataObject);
+
+        if(!result.success) {
+            return {
+                section: 'EmailPassword',
+                errors: result.error.flatten().fieldErrors
+            };
+        }
+
+        return {
+            section: 'UserRole',
+            errors: {
+                email: undefined,
+                password: undefined
+            }
+        }
+    } else if ('roleCombobox' in formDataObject) {
+        redirect('/dashboard');
+    } else {
+        return {
+                section: 'EmailPassword',
+                errors: {
+                    email: ['Unknown section'],
+                    password: undefined
+                }
+            };
+    }
+
+//     // checks the user input against the schemea
+//    const result = loginSchema.safeParse(formDataObject);
+
+//     if(!result.success) {
+//         return {
+//             errors: result.error.flatten().fieldErrors
+//         };
+//     }
+
+//     // sends the user input against the actual user information
+//     if(formDataObject.email !== testUser.email || formDataObject.password !== testUser.password) {
+//         return {
+//             errors: {
+//                 email: ["Email or password is wrong"],
+//                 password: undefined
+//             }
+//         }
+//     }
+
+//     await CreateSession(formDataObject.email);
+
+//     // create session and redirect
+//     redirect('/dashboard');
 }

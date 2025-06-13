@@ -65,7 +65,7 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
   const { id: listboxId, ...listboxProps } = getMenuProps();
 
   return (
-    <Utility vFlexCol vGap={12} className='w-full' id={id}>
+    <Utility vFlexCol vGap={12} className='w-full'>
       <Combobox>
         <DropdownContainer className="v-flex v-flex-col v-gap-4">
           <Label {...getLabelProps()}>{label} {isRequired ? '(required)' : ''}</Label>
@@ -74,7 +74,7 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
               aria-describedby="input-error-message"
               aria-haspopup="listbox"
               aria-invalid={errorState ? 'true' : 'false'}
-              name="text-input-field-6"
+              name={id}
               type="text"
               {...getInputProps({
                 'aria-expanded': isOpen && items.length > 0,
