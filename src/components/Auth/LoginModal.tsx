@@ -7,6 +7,7 @@ import {
 import Link from 'next/link';
 import { ErrorInput } from '../ErrorInput';
 import { Login } from './action';
+import { MaskButtonInput } from '../MaskButtonInput';
 
 const LoginModal = () => {
     const [state, loginAction] = useActionState(Login, undefined);
@@ -27,7 +28,7 @@ const LoginModal = () => {
             <section className="self-stretch flex flex-col justify-start items-start gap-4">
                 <ErrorInput id='email' label='Email' isRequired errorText={state?.errors.email?.join(', ')} autocomplete='email'/>
                 <div className="self-stretch inline-flex flex-col justify-start items-start gap-2">
-                    <ErrorInput id='password' label='Password' isRequired description='Password must have atleast 8 charcters' autocomplete='password' errorText={state?.errors.password?.join(', ')}/>
+                    <MaskButtonInput id='password' label='Password' isRequired description='Password must have atleast 8 charcters' autocomplete='password' errorText={state?.errors.password?.join(', ')}/>
                     <Link href='/forgot-password' className="w-72 justify-start text-Color-Text-text text-xs font-semibold underline leading-none">Forgot password?</Link>
                 </div>
             </section>

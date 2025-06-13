@@ -10,6 +10,7 @@ type SessionPayload = {
     expiresAt: Date
 }
 
+// this is the refresh token essentially
 export const CreateSession = async (userid: string) => {
     const expiresAt = new Date(Date.now() + (1000 * 60 * 60 * 24 *7)) //a week (7 days) after time of creation
     const session = await encrypt({ userid, expiresAt });
