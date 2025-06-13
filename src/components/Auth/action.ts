@@ -11,8 +11,8 @@ type UserType = {
 type SignupType = {
     email?: string,
     password?: string,
-    role?: string,
-    sector?: string
+    roleCombobox?: string,
+    sectorCombobox?: string
 }
 
 const testUser:UserType = {
@@ -27,6 +27,9 @@ const loginSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters" })
     .trim(),
 });
+
+const userRoleSchema = z.enum(['Business', 'Analyst (Internal)']);
+const sectorSchema = z.enum(['Banking', 'Real estate']);
 
 export const Login = async (_prevState: any, formData: FormData) => {
     const formDataObject = Object.fromEntries(formData) as UserType; //this transforms the form data into an object, with the names of the input as the keys, and the values as the values. then I have set the type
@@ -88,6 +91,36 @@ export const Signup = async (_prevState: any, formData: FormData):Promise<Signup
             }
         }
     } else if ('roleCombobox' in formDataObject) {
+        // first, check if a role has sucessfully been chosen
+        const result1 = userRoleSchema.safeParse(formDataObject.roleCombobox);
+
+        if(!result1.success) {
+            return {
+                section: 'UserRole',
+                errors: {
+                    roleCombobox: ['Please select a valid role'],
+                    sectorCombobox: undefined
+                }
+            }
+        }
+
+        // if the chosen type was business, check for a valid sector
+        if(formDataObject.roleCombobox === 'Business') {
+            const result2 = sectorSchema.safeParse(formDataObject.sectorCombobox);
+
+            if(!result2.success) {
+                return {
+                    section: 'UserRole',
+                    errors: {
+                        roleCombobox: undefined,
+                        sectorCombobox: ['Please select a valid sector']
+                    }
+                }
+            }
+        }
+
+        // Create the user account in the database and create session
+
         redirect('/dashboard');
     } else {
         return {

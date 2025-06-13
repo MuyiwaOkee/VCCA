@@ -1,5 +1,5 @@
 "use client"
-import React, { useActionState, useReducer } from 'react'
+import React, { useActionState, useCallback, useState } from 'react'
 import { ErrorInput } from '../ErrorInput'
 import { ComboboxItem, ErrorCombobox } from '../ErrorCombobox'
 import LogoIcon from '@/icons/logo'
@@ -37,7 +37,7 @@ const SignupModal = () => {
                         {/* Inputs */}
                         {
                             state.section == 'EmailPassword' ? <EmailPasswordSection emailError={state.errors.email?.join(', ')} passwordError={state.errors.password?.join(', ')}/>
-                            : <UserRoleSection />
+                            : <UserRoleSection roleError={state.errors.roleCombobox?.join(', ')} sectorError={state.errors.sectorCombobox?.join(', ')}/>
                         }
                     </section>
                     {/* Actions */}
@@ -62,7 +62,7 @@ type EmailPasswordSectionProps = {
     passwordError: string | undefined
 }
 
-const EmailPasswordSection = ({emailError, passwordError}: EmailPasswordSectionProps) => {
+const EmailPasswordSection = ({ emailError, passwordError }: EmailPasswordSectionProps) => {
   return (
     <section className="self-stretch flex flex-col justify-start items-start gap-4">
         <ErrorInput id='email' label='Email' isRequired errorText={emailError}/>
@@ -71,7 +71,18 @@ const EmailPasswordSection = ({emailError, passwordError}: EmailPasswordSectionP
   )
 }
 
-const UserRoleSection = () => {
+type UserRoleSectionProps = {
+    roleError: string | undefined,
+    sectorError: string | undefined
+}
+
+const UserRoleSection = ({ roleError, sectorError }: UserRoleSectionProps) => {
+    const [userRoleValue, setUserRoleValue] = useState<string | null>(null);
+
+    const comboboxRef = useCallback((value: string | null) => {
+        setUserRoleValue(value);
+    }, []);
+
     const userRoleItems: ComboboxItem[] = [
         { value: 'Business' },
         { value: 'Analyst (Internal)' }
@@ -80,12 +91,12 @@ const UserRoleSection = () => {
     const sectorItems: ComboboxItem[] = [
         { value: 'Banking' },
         { value: 'Real estate' }
-    ];
+    ]; 
 
     return (
         <section className="self-stretch flex flex-col justify-start items-start gap-4">
-            <ErrorCombobox id='roleCombobox' items={userRoleItems} isRequired label='Choose your role' errorText='User role not selected'/>
-            <ErrorCombobox id='sectorCombobox' items={sectorItems} isRequired label='What sector is your busness in?' errorText='User role not selected'/>
+            <ErrorCombobox ref={comboboxRef} id='roleCombobox' items={userRoleItems} isRequired label='Choose your role' errorText={roleError}/>
+            {userRoleValue === 'Business' && <ErrorCombobox id='sectorCombobox' items={sectorItems} isRequired label='What sector is your busness in?' errorText={sectorError}/>}
         </section>
     )
 }

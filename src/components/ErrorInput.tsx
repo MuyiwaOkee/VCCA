@@ -35,7 +35,7 @@ export const ErrorInput = ({ id, label, isRequired, description, errorText, auto
         <InputContainer>
           <Input
             aria-describedby={`${id}-message`}
-            aria-invalid={inputState.error}
+            aria-invalid={errorText ? 'true' : 'false'}
             aria-required="true"
             ref={inputRef}
             id={id}

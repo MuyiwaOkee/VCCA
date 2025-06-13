@@ -17,7 +17,7 @@ import {
   UtilityFragment,
 } from '@visa/nova-react';
 import { UseComboboxState, UseComboboxStateChangeOptions, useCombobox } from 'downshift';
-import { useState } from 'react';
+import { forwardRef, useEffect } from 'react';
 
 export type ComboboxItem = { value: string };
 
@@ -26,7 +26,7 @@ type Props = {
   id: string,
   label: string
   isRequired?: boolean,
-  errorText: string
+  errorText: string | undefined
 }
 
 export const itemToString = (item: ComboboxItem | null) => (item ? item.value : '');
@@ -43,10 +43,8 @@ export const stateReducer = <ItemType,>(
       }
     : changes;
 
-export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props) => {
-  const [errorState, setErrorState] = useState(false);
-
-  const {
+  export const ErrorCombobox = forwardRef<string | null, Props>(({ items, id, label, isRequired, errorText }: Props, ref) => {
+    const {
     getInputProps,
     getItemProps,
     getLabelProps,
@@ -64,7 +62,16 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
   });
   const { id: listboxId, ...listboxProps } = getMenuProps();
 
-  return (
+    // Expose the selected value via ref
+     useEffect(() => {
+      if (typeof ref === 'function') {
+        ref(selectedItem?.value || null);
+      } else if (ref) {
+        ref.current = selectedItem?.value || null;
+      }
+    }, [selectedItem, ref]);
+
+    return (
     <Utility vFlexCol vGap={12} className='w-full'>
       <Combobox>
         <DropdownContainer className="v-flex v-flex-col v-gap-4">
@@ -73,7 +80,7 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
             <Input
               aria-describedby="input-error-message"
               aria-haspopup="listbox"
-              aria-invalid={errorState ? 'true' : 'false'}
+              aria-invalid={errorText ? 'true' : 'false'}
               name={id}
               type="text"
               {...getInputProps({
@@ -93,7 +100,7 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
               {isOpen ? <VisaChevronUpTiny /> : <VisaChevronDownTiny />}
             </Button>
           </InputContainer>
-          {errorState && !isOpen && (
+          {errorText && !isOpen && (
             <InputMessage aria-atomic="true" aria-live="assertive" id="input-error-message" role="alert">
               <VisaErrorTiny />
               {errorText}
@@ -122,5 +129,5 @@ export const ErrorCombobox = ({ items, id, label, isRequired, errorText }: Props
         </ListboxContainer>
       </Combobox>
     </Utility>
-  );
-};
+  )
+});
