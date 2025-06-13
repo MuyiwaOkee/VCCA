@@ -5,6 +5,7 @@ import { ComboboxItem, ErrorCombobox } from '../ErrorCombobox'
 import LogoIcon from '@/icons/logo'
 import Link from 'next/link'
 import { Button } from '@visa/nova-react'
+import { MaskButtonInput } from '../MaskButtonInput'
 
 type SignSectionStateType = {
     section: 'Email-Password' | 'user-role'
@@ -88,7 +89,7 @@ const EmailPasswordSection = () => {
   return (
     <section className="self-stretch flex flex-col justify-start items-start gap-4">
         <ErrorInput id='input-login-email' label='Email' isRequired errorText='Please use a valid email'/>
-        <ErrorInput id='input-login-password' label='Password' isRequired description='Password must have atleast 8 charcters' errorText='Password must have atleast 8 charcters'/>
+        <MaskButtonInput id='input-login-password' label='Password' isRequired description='Password must have atleast 8 charcters' errorText='Password must have atleast 8 charcters'/>
     </section>
   )
 }

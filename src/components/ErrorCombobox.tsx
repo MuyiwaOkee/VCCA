@@ -29,14 +29,6 @@ type Props = {
   errorText: string
 }
 
-// const items: Item[] = [
-//   { value: 'Option A' },
-//   { value: 'Option B' },
-//   { value: 'Option C' },
-//   { value: 'Option D' },
-//   { value: 'Option E' },
-// ];
-
 export const itemToString = (item: ComboboxItem | null) => (item ? item.value : '');
 
 export const stateReducer = <ItemType,>(
