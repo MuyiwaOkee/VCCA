@@ -1,5 +1,5 @@
 "use client"
-import React, { useActionState } from 'react'
+import React, { useActionState, useRef } from 'react'
 import LogoIcon from "@/icons/logo";
 import {
   Button
@@ -11,9 +11,17 @@ import { MaskButtonInput } from '../MaskButtonInput';
 
 const LoginModal = () => {
     const [state, loginAction] = useActionState(Login, undefined);
+    const formRef = useRef<HTMLFormElement>(null!);
+    
+    const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
+        if(e.code === 'Enter') {
+            e.preventDefault();
+            formRef.current.requestSubmit();
+        }
+    };
     
   return (
-    <form action={loginAction} className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between items-center">
+    <form ref={formRef} onKeyDown={HandleSubmit} action={loginAction} className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between items-center">
         {/* Main form content */}
         <section className="self-stretch  h-80 flex flex-col justify-start items-center gap-2">
             {/* Title */}

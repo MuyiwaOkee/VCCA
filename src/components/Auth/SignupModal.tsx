@@ -1,5 +1,5 @@
 "use client"
-import React, { useActionState, useCallback, useState } from 'react'
+import React, { useActionState, useCallback, useRef, useState } from 'react'
 import { ErrorInput } from '../ErrorInput'
 import ErrorCombobox, { ComboboxItem } from '../ErrorCombobox'
 import LogoIcon from '@/icons/logo'
@@ -19,11 +19,19 @@ const DEFAULT_STATE:SignupOutput = {
 
 const SignupModal = () => {
     const [state, signupAction] = useActionState(Signup, DEFAULT_STATE);
+    const formRef = useRef<HTMLFormElement>(null!);
+
+    const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
+        if(e.code === 'Enter') {
+            e.preventDefault();
+            formRef.current.requestSubmit();
+        }
+    };
     
     return (
     <div className="w-[688px] inline-flex justify-start items-start gap-12">
                 {/* Forms */}
-                <form action={signupAction} className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between   items-center">
+                <form ref={formRef} onKeyDown={HandleSubmit} action={signupAction} className="w-80 h-[456px] min-w-56 inline-flex flex-col justify-between   items-center">
                     {/* Main form content */}
                     <section className="self-stretch  h-80 flex flex-col justify-start items-center gap-2">
                         {/* Title */}
