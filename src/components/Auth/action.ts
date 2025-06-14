@@ -70,7 +70,18 @@ export type SignupOutput = {
     }
 }
 
-export const Signup = async ({ section }: SignupOutput, formData: FormData):Promise<SignupOutput> =>  {
+export const Signup = async ({ section }: SignupOutput, formData: FormData | undefined):Promise<SignupOutput> =>  {
+    // if there is no form data, the user goes back to the start of the form
+    if(!formData) {
+        return {
+                section: 'EmailPassword',
+                errors: {
+                    email: undefined,
+                    password: undefined
+                }
+            };
+    }
+    
     const formDataObject = Object.fromEntries(formData) as SignupType;
 
     // find the section of the signup process there at, and then run the processes for that section

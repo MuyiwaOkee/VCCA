@@ -1,5 +1,5 @@
 "use client"
-import React, { useActionState, useCallback, useRef, useState } from 'react'
+import React, { useActionState, useCallback, useRef, useState, startTransition } from 'react'
 import { ErrorInput } from '../ErrorInput'
 import ErrorCombobox, { ComboboxItem } from '../ErrorCombobox'
 import LogoIcon from '@/icons/logo'
@@ -18,7 +18,7 @@ const DEFAULT_STATE:SignupOutput = {
 }
 
 const SignupModal = () => {
-    const [state, signupAction] = useActionState(Signup, DEFAULT_STATE);
+    const [state, signupAction, isPending] = useActionState(Signup, DEFAULT_STATE);
     const formRef = useRef<HTMLFormElement>(null!);
 
     const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
@@ -40,7 +40,9 @@ const SignupModal = () => {
                                 <LogoIcon width={85} height={22}/>
                                 <h2 className="justify-start text-[#1434CB] text-3xl font-semibold leading-10 tracking-wide">Sign-up</h2>
                             </div>
-                            {/* {state.section === 'UserRole' && <p className="text-black w-full text-center text-sm font-semibold underline leading-none cursor-pointer" onClick={() => dispatch({type: 'move_to_Email-Password'})}>Back</p>} */}
+                            {state.section === 'UserRole' && <p className="text-black w-full text-center text-sm font-semibold underline leading-none cursor-pointer" onClick={() => startTransition(() => {
+                                signupAction(undefined)
+                            })}>Back</p>}
                             <p className="hidden self-stretch text-center justify-start text-Color-Messaging-negative-text text-sm font-semibold leading-none">Connection to server failed. Please try again later</p>
                         </section>
                         {/* Inputs */}
@@ -49,7 +51,7 @@ const SignupModal = () => {
                     </section>
                     {/* Actions */}
                     <section className="flex flex-col justify-start items-center gap-6">
-                        <Button className='w-32 min-h-6 px-3.5 py-2.5' type='submit'>{state.section === 'EmailPassword' ? 'Continue' : 'Create Account'}</Button>
+                        <Button className='w-32 min-h-6 px-3.5 py-2.5' type='submit'>{!isPending ? state.section === 'EmailPassword' ? 'Continue' : 'Create Account' : 'Pending'}</Button>
                         <Link href='/login' className="justify-start text-Color-Text-text text-xs font-semibold underline leading-none">Have an account? Login</Link>
                     </section>
                 </form>

@@ -10,7 +10,7 @@ import { Login } from './action';
 import { MaskButtonInput } from '../MaskButtonInput';
 
 const LoginModal = () => {
-    const [state, loginAction] = useActionState(Login, undefined);
+    const [state, loginAction, isPending] = useActionState(Login, undefined);
     const formRef = useRef<HTMLFormElement>(null!);
     
     const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
@@ -43,7 +43,7 @@ const LoginModal = () => {
         </section>
         {/* Actions */}
         <section className="flex flex-col justify-start items-center gap-6">
-            <Button className='w-32 min-h-6 px-3.5 py-2.5' type='submit'>Login</Button>
+            <Button className='w-32 min-h-6 px-3.5 py-2.5' type='submit'>{!isPending ? 'Login' : 'Pending'}</Button>
             <Link href='/signup' className="justify-start text-Color-Text-text text-xs font-semibold underline leading-none">Don't have an account? Sign up</Link>
         </section>
 </form>
