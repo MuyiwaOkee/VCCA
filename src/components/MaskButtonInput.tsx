@@ -22,6 +22,8 @@ export const MaskButtonInput = ({ id, label, isRequired, description, errorText,
         <Input aria-required="true" id={id}  name={id} type={showPassword ? 'text' : 'password'} autoComplete={autocomplete}/>
         <Button
           aria-label={showPassword ? 'hide text' : 'show text'}
+          aria-invalid={errorText ? 'true' : 'false'}
+          aria-required="true"
           buttonSize="small"
           colorScheme="tertiary"
           iconButton

@@ -2,6 +2,7 @@
 import { CreateSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import * as z from 'zod'
+import { hash } from 'argon2';
 
 type UserType = {
     email: string,
@@ -69,11 +70,11 @@ export type SignupOutput = {
     }
 }
 
-export const Signup = async (_prevState: any, formData: FormData):Promise<SignupOutput> =>  {
+export const Signup = async ({ section }: { section: "EmailPassword" | "UserRole"}, formData: FormData):Promise<SignupOutput> =>  {
     const formDataObject = Object.fromEntries(formData) as SignupType;
 
     // find the section of the signup process there at, and then run the processes for that section
-    if('email' in formDataObject) {
+    if(section === 'EmailPassword') {
         const result = loginSchema.safeParse(formDataObject);
 
         if(!result.success) {
@@ -90,7 +91,7 @@ export const Signup = async (_prevState: any, formData: FormData):Promise<Signup
                 password: undefined
             }
         }
-    } else if ('roleCombobox' in formDataObject) {
+    } else if (section === 'UserRole') {
         // first, check if a role has sucessfully been chosen
         const result1 = userRoleSchema.safeParse(formDataObject.roleCombobox);
 
@@ -120,6 +121,14 @@ export const Signup = async (_prevState: any, formData: FormData):Promise<Signup
         }
 
         // Create the user account in the database and create session
+        const { email, password: passwordNotHashed, roleCombobox: role, sectorCombobox:sector } = formDataObject;
+
+        const newUser = {
+            email,
+            password: await hash(passwordNotHashed!), //hashed and salted password for added security
+            role,
+            sector
+        };
 
         redirect('/dashboard');
     } else {

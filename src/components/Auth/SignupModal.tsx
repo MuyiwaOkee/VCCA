@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@visa/nova-react'
 import { MaskButtonInput } from '../MaskButtonInput'
 import { Signup, SignupOutput } from './action'
+import cn from '@/utils/cn'
 
 const DEFAULT_STATE:SignupOutput = {
     section: 'EmailPassword',
@@ -35,10 +36,8 @@ const SignupModal = () => {
                             <p className="hidden self-stretch text-center justify-start text-Color-Messaging-negative-text text-sm font-semibold leading-none">Connection to server failed. Please try again later</p>
                         </section>
                         {/* Inputs */}
-                        {
-                            state.section == 'EmailPassword' ? <EmailPasswordSection emailError={state.errors.email?.join(', ')} passwordError={state.errors.password?.join(', ')}/>
-                            : <UserRoleSection roleError={state.errors.roleCombobox?.join(', ')} sectorError={state.errors.sectorCombobox?.join(', ')}/>
-                        }
+                        <EmailPasswordSection emailError={state.errors.email?.join(', ')} passwordError={state.errors.password?.join(', ')} isHidden={state.section != 'EmailPassword'}/>
+                        <UserRoleSection roleError={state.errors.roleCombobox?.join(', ')} sectorError={state.errors.sectorCombobox?.join(', ')} isHidden={state.section != 'UserRole'}/>
                     </section>
                     {/* Actions */}
                     <section className="flex flex-col justify-start items-center gap-6">
@@ -59,12 +58,13 @@ const SignupModal = () => {
 
 type EmailPasswordSectionProps = {
     emailError: string | undefined,
-    passwordError: string | undefined
+    passwordError: string | undefined,
+    isHidden: boolean
 }
 
-const EmailPasswordSection = ({ emailError, passwordError }: EmailPasswordSectionProps) => {
+const EmailPasswordSection = ({ emailError, passwordError, isHidden }: EmailPasswordSectionProps) => {
   return (
-    <section className="self-stretch flex flex-col justify-start items-start gap-4">
+    <section className={cn("self-stretch flex flex-col justify-start items-start gap-4", isHidden ? "hidden" : "visible")}>
         <ErrorInput id='email' label='Email' isRequired errorText={emailError}/>
         <MaskButtonInput id='password' label='Password' isRequired description='Password must have atleast 8 charcters' errorText={passwordError}/>
     </section>
@@ -73,10 +73,11 @@ const EmailPasswordSection = ({ emailError, passwordError }: EmailPasswordSectio
 
 type UserRoleSectionProps = {
     roleError: string | undefined,
-    sectorError: string | undefined
+    sectorError: string | undefined,
+    isHidden: boolean
 }
 
-const UserRoleSection = ({ roleError, sectorError }: UserRoleSectionProps) => {
+const UserRoleSection = ({ roleError, sectorError, isHidden }: UserRoleSectionProps) => {
     const [userRoleValue, setUserRoleValue] = useState<string | null>(null);
 
     const comboboxRef = useCallback((value: string | null) => {
@@ -94,7 +95,7 @@ const UserRoleSection = ({ roleError, sectorError }: UserRoleSectionProps) => {
     ]; 
 
     return (
-        <section className="self-stretch flex flex-col justify-start items-start gap-4">
+        <section className={cn("self-stretch flex flex-col justify-start items-start gap-4", isHidden ? "hidden" : "visible")}>
             <ErrorCombobox ref={comboboxRef} id='roleCombobox' items={userRoleItems} isRequired label='Choose your role' errorText={roleError}/>
             {userRoleValue === 'Business' && <ErrorCombobox id='sectorCombobox' items={sectorItems} isRequired label='What sector is your busness in?' errorText={sectorError}/>}
         </section>
