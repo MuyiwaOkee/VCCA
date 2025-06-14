@@ -1,7 +1,7 @@
 "use client"
 import React, { useActionState, useCallback, useState } from 'react'
 import { ErrorInput } from '../ErrorInput'
-import { ComboboxItem, ErrorCombobox } from '../ErrorCombobox'
+import ErrorCombobox, { ComboboxItem } from '../ErrorCombobox'
 import LogoIcon from '@/icons/logo'
 import Link from 'next/link'
 import { Button } from '@visa/nova-react'

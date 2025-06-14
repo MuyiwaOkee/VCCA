@@ -43,7 +43,7 @@ export const stateReducer = <ItemType,>(
       }
     : changes;
 
-  export const ErrorCombobox = forwardRef<string | null, Props>(({ items, id, label, isRequired, errorText }: Props, ref) => {
+  const ErrorCombobox = forwardRef<string | null, Props>(({ items, id, label, isRequired, errorText }: Props, ref) => {
     const {
     getInputProps,
     getItemProps,
@@ -131,3 +131,5 @@ export const stateReducer = <ItemType,>(
     </Utility>
   )
 });
+
+export default ErrorCombobox
