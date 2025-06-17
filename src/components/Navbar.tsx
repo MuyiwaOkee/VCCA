@@ -320,13 +320,13 @@ export const Navbar = () => {
                           <Listbox>
                             {accountSubItems.map(accountSubItem => (
                               <UtilityFragment key={accountSubItem.id}>
-                                <li>
-                                  <UtilityFragment vPaddingVertical={4} vPaddingHorizontal={8}>
-                                    <ListboxItem href={accountSubItem.href} tag="a">
+                                <Link href={accountSubItem.href}>
+                                  <UtilityFragment vPaddingVertical={4} vPaddingHorizontal={8}> 
+                                    <ListboxItem>
                                       {accountSubItem.tabLabel}
                                     </ListboxItem>
                                   </UtilityFragment>
-                                </li>
+                                </Link>
                               </UtilityFragment>
                             ))}
                           </Listbox>

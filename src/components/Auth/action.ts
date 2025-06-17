@@ -1,5 +1,5 @@
 "use server"
-import { CreateSession } from '@/lib/session';
+import { CreateSession, DeleteSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import * as z from 'zod'
 import { hash } from 'argon2';
@@ -58,6 +58,11 @@ export const Login = async (_prevState: any, formData: FormData) => {
 
     // create session and redirect
     redirect('/dashboard');
+}
+
+export const Logout = async () => {
+    await DeleteSession();
+    redirect('/login');
 }
 
 export type SignupOutput = {
