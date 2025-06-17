@@ -1,3 +1,10 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "User dashbaord",
+};
+
 export default function RootLayout({
   children,
   notifications,
