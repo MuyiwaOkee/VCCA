@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { decrypt } from "./lib/session"
+import { decrypt, DeleteSession } from "./lib/session"
 
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard', '/predict'];
 const publicRoutes = ['/login', '/signup', '/']
 
 export const middleware = async (req: NextRequest) => {
     const path = req.nextUrl.pathname; //get page user is on
+
+    // Delete session on logout
+    if(path == '/logout') {
+        await DeleteSession();
+        return NextResponse.redirect(new URL('/login', req.nextUrl));
+    }
 
     const cookie = (await cookies()).get('session')?.value; //get jwt if available
     const session = await decrypt(cookie);

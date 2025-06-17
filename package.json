@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.12",
     "@visa/nova-icons-react": "^2.0.4",
     "@visa/nova-react": "^2.5.4",
     "argon2": "^0.43.0",
