@@ -1,4 +1,5 @@
-import { VisaChevronRightTiny, VisaFileUploadTiny } from '@visa/nova-icons-react';
+"use client"
+import { VisaChevronRightTiny } from '@visa/nova-icons-react';
 import {
   Button,
   ContentCard,
@@ -9,6 +10,7 @@ import {
   Typography,
   Utility,
 } from '@visa/nova-react';
+import React from 'react';
 
 type ButtonProps = {
     text: string,
@@ -20,6 +22,12 @@ type LinkProps = {
     href: string
 }
 
+export type IconButtonProps = {
+    ariaLabel: string,
+    onClickFunc?: () => void,
+    iconNode: React.ReactNode
+}
+
 type Props = {
     id?: string,
     headline: string,
@@ -27,17 +35,32 @@ type Props = {
     text?: string,
     primaryButton: ButtonProps,
     link?: LinkProps
+    iconButtons?: IconButtonProps[]
 }
 
-export const DefaultContentCard = ({ id, headline, subtitle, text, primaryButton, link }: Props) => {
+export const DefaultContentCard = ({ id, headline, subtitle, text, primaryButton, link, iconButtons }: Props) => {
   return (
     <ContentCard id={id}>
       <Utility element={<ContentCardBody />} vFlex vFlexCol vGap={4}>
         <Utility vAlignItems="center" vFlex vFlexRow vJustifyContent="between">
           <ContentCardTitle variant="headline-4">{headline}</ContentCardTitle>
-          <Button aria-label="Export [Headline]" buttonSize="small" colorScheme="tertiary" iconButton>
-            <VisaFileUploadTiny />
-          </Button>
+          {/* Icons list */}
+          {iconButtons && iconButtons.length > 0 && <Utility>
+            {
+                iconButtons.map(({ ariaLabel, onClickFunc, iconNode }) => (
+                    <Button
+                      key={ariaLabel}
+                      aria-label={ariaLabel}
+                      buttonSize="small"
+                      colorScheme="tertiary"
+                      iconButton
+                      onClick={onClickFunc}
+                    >
+                      {iconNode}
+                    </Button>
+                ))
+            }
+          </Utility>}
         </Utility>
         {subtitle && <ContentCardSubtitle variant="subtitle-3">{subtitle}</ContentCardSubtitle>}
         {text && <Typography className="v-pt-4">
