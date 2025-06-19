@@ -16,8 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex justify-center">
-      <div className="w-[1200px] h-full relative">
-        <section className="self-stretch inline-flex flex-col justify-start items-end">
+      <div className="w-[1200px] h-full relative mt-4">
+        <section className="w-[384px] inline-flex flex-col justify-start items-end">
           {notifications}
         </section>
         <section className="self-stretch inline-flex flex-col justify-start items-center gap-6">

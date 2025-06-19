@@ -1,30 +1,51 @@
+import { ClickableContentCard } from '@/components/ClickableContentCard'
+import { SlimPagination } from '@/components/SlimPagination'
 import React from 'react'
 
+type NotficationsType = {
+    id: string,
+    headline: string
+    date: Date,
+    text: string
+}
+
 const NotificationsModal = () => {
+    const notifications:NotficationsType[] = [
+        {
+    id: "1",
+    headline: "System Maintenance",
+    date: new Date("2025-06-18T10:00:00Z"),
+    text: "Scheduled maintenance will occur this weekend from 2 AM to 4 AM."
+  },
+  {
+    id: "2",
+    headline: "New Feature Released",
+    date: new Date("2025-06-17T14:30:00Z"),
+    text: "We've launched dark mode! You can enable it in your settings."
+  },
+  {
+    id: "3",
+    headline: "Security Alert",
+    date: new Date("2025-06-16T09:15:00Z"),
+    text: "We detected a login from a new device. If this wasn't you, please update your password."
+  },
+//   {
+//     id: "4",
+//     headline: "Survey Invitation",
+//     date: new Date("2025-06-15T12:00:00Z"),
+//     text: "Help us improve by filling out a quick feedback survey."
+//   },
+//   {
+//     id: "5",
+//     headline: "Account Update",
+//     date: new Date("2025-06-14T08:45:00Z"),
+//     text: "Your profile information has been successfully updated."
+//   }
+    ];
   return (
    <div className="self-stretch inline-flex flex-col justify-start items-end">
-    <div className="w-72 inline-flex justify-between items-center">
-        <div data-btn-size="Medium" data-show-badge="false" data-state="Disabled" data-style="Default" className="w-8 h-8 p-2.5 rounded-[48px] outline outline-1 outline-offset-[-1px] outline-black/0 flex justify-center items-center">
-            <div data-brand="Visa" data-size="Tiny (16x16)" className="w-4 h-4 relative">
-                <div className="w-px h-px left-[5px] top-[7px] absolute opacity-0 bg-blue-700" />
-            </div>
-        </div>
-        <div data-selected="On" data-state="Default" className="p-1.5 rounded-[48px] outline outline-1 outline-offset-[-1px] outline-Color-Active-active flex justify-center items-center">
-            <div className="min-w-4 text-center justify-start text-Color-Active-active text-xs font-medium font-['Noto_Sans'] leading-none">1</div>
-        </div>
-        <div data-selected="Off" data-state="Default" className="p-1.5 rounded-[48px] outline outline-1 outline-offset-[-1px] outline-black/0 flex justify-center items-center">
-            <div className="min-w-4 text-center justify-start text-Color-Active-active text-xs font-normal font-['Noto_Sans'] leading-none">2</div>
-        </div>
-        <div data-selected="Off" data-state="Default" className="p-1.5 rounded-[48px] outline outline-1 outline-offset-[-1px] outline-black/0 flex justify-center items-center">
-            <div className="min-w-4 text-center justify-start text-Color-Active-active text-xs font-normal font-['Noto_Sans'] leading-none">3</div>
-        </div>
-        <div data-btn-size="Medium" data-show-badge="false" data-state="Default" data-style="Default" className="w-8 h-8 p-2.5 rounded-[48px] outline outline-1 outline-offset-[-1px] outline-black/0 flex justify-center items-center">
-            <div data-brand="Visa" data-size="Tiny (16x16)" className="w-4 h-4 relative">
-                <div className="w-px h-px left-[9px] top-[9px] absolute opacity-0 bg-blue-700" />
-            </div>
-        </div>
-    </div>
-    <div data-column-divider="false" data-column-menu="false" data-column-options="true" data-show-label="true" data-sort-by="true" data-type="Default" className="self-stretch px-4 py-1.5 bg-Color-Surface-surface-1 border-b-2 border-Color-Active-active inline-flex justify-start items-center gap-1">
+    <SlimPagination />
+    {/* <div data-column-divider="false" data-column-menu="false" data-column-options="true" data-show-label="true" data-sort-by="true" data-type="Default" className="self-stretch px-4 py-1.5 bg-Color-Surface-surface-1 border-b-2 border-Color-Active-active inline-flex justify-start items-center gap-1">
         <div className="flex-1 flex justify-start items-center gap-2.5">
             <div className="flex-1 justify-center text-Color-Active-active text-sm font-medium font-['Noto_Sans'] leading-none">Logs</div>
         </div>
@@ -38,50 +59,13 @@ const NotificationsModal = () => {
                 <div className="w-px h-px left-[8px] top-[7px] absolute opacity-0 bg-blue-700" />
             </div>
         </div>
-    </div>
+    </div> */}
     <div className="self-stretch flex flex-col justify-start items-start">
-        <div className="self-stretch flex flex-col justify-start items-center">
-            <div data-1-ui-button="false" data-2-ui-button="true" data-bottom-rule="false" data-show-slot-2="true" data-show-slot-3="false" data-show-slot-4="false" className="self-stretch p-5 bg-Color-Surface-surface-1 rounded-[10px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-Color-Decorative-border/10 flex flex-col justify-start items-start gap-2 overflow-hidden">
-                <div data-headline-rule="false" data-subhead="true" className="self-stretch flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-Color-Active-active text-lg font-semibold font-['Noto_Sans'] leading-normal">New Interest Rate</div>
-                    <div className="self-stretch justify-start text-Color-Text-text-subtle text-sm font-semibold font-['Noto_Sans'] leading-none">2025-01-07</div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-2">
-                    <div className="flex-1 justify-start text-Color-Text-text text-sm font-normal font-['Noto_Sans'] leading-snug">Intest rate is now 0.75 basis points. </div>
-                </div>
-            </div>
-            <div className="self-stretch h-px flex flex-col justify-end items-start gap-2">
-                <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-Color-Active-active"></div>
-            </div>
-        </div>
-        <div className="self-stretch flex flex-col justify-start items-center">
-            <div data-1-ui-button="false" data-2-ui-button="true" data-bottom-rule="false" data-show-slot-2="true" data-show-slot-3="false" data-show-slot-4="false" className="self-stretch p-5 bg-Color-Surface-surface-1 rounded-[10px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-Color-Decorative-border/10 flex flex-col justify-start items-start gap-2 overflow-hidden">
-                <div data-headline-rule="false" data-subhead="true" className="self-stretch flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-Color-Active-active text-lg font-semibold font-['Noto_Sans'] leading-normal">New Credit Card Data</div>
-                    <div className="self-stretch justify-start text-Color-Text-text-subtle text-sm font-semibold font-['Noto_Sans'] leading-none">2024-12-07</div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-2">
-                    <div className="flex-1 justify-start text-Color-Text-text text-sm font-normal font-['Noto_Sans'] leading-snug">Credit card data for the month of December now available</div>
-                </div>
-            </div>
-            <div className="self-stretch h-px flex flex-col justify-end items-start gap-2">
-                <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-Color-Active-active"></div>
-            </div>
-        </div>
-        <div className="self-stretch flex flex-col justify-start items-center">
-            <div data-1-ui-button="false" data-2-ui-button="true" data-bottom-rule="false" data-show-slot-2="true" data-show-slot-3="false" data-show-slot-4="false" className="self-stretch p-5 bg-Color-Surface-surface-1 rounded-[10px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-Color-Decorative-border/10 flex flex-col justify-start items-start gap-2 overflow-hidden">
-                <div data-headline-rule="false" data-subhead="true" className="self-stretch flex flex-col justify-start items-start gap-1">
-                    <div className="self-stretch justify-start text-Color-Active-active text-lg font-semibold font-['Noto_Sans'] leading-normal">New Credit Card Data</div>
-                    <div className="self-stretch justify-start text-Color-Text-text-subtle text-sm font-semibold font-['Noto_Sans'] leading-none">2024-11-07</div>
-                </div>
-                <div className="self-stretch inline-flex justify-start items-start gap-2">
-                    <div className="flex-1 justify-start text-Color-Text-text text-sm font-normal font-['Noto_Sans'] leading-snug">Credit card data for the month of November now available</div>
-                </div>
-            </div>
-            <div className="self-stretch h-px flex flex-col justify-end items-start gap-2">
-                <div className="self-stretch h-0 outline outline-1 outline-offset-[-0.50px] outline-Color-Active-active"></div>
-            </div>
-        </div>
+        {
+        notifications.map(({ id, headline, date, text}) => {
+            return <ClickableContentCard key={id} headline={headline} subtitle={date.toISOString().split('T')[0]}  text={text}/>
+        })
+    }
     </div>
 </div>
   )
