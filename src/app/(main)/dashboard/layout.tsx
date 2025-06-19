@@ -15,7 +15,7 @@ export default function RootLayout({
   trends: React.ReactNode
 }>) {
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center h-full">
       <div className="w-[1200px] h-full flex gap-6 mt-4">
         <section className="w-[384px] inline-flex flex-col justify-start items-end">
           {notifications}

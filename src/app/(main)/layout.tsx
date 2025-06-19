@@ -9,7 +9,7 @@ export default function RootLayout({
   logout: React.ReactNode
 }>) {
   return (
-    <div className="relative">
+    <div className="relative h-full">
         {logout}
         <Navbar />
         {children}

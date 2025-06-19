@@ -1,6 +1,7 @@
 "use client"
 import { DefaultContentCard, IconButtonProps } from '@/components/DefaultContentCard'
-import { VisaFileUploadTiny } from '@visa/nova-icons-react'
+import { TopTooltip } from '@/components/Tooltip'
+import { VisaFileUploadTiny, VisaInformationAltHigh } from '@visa/nova-icons-react'
 import React from 'react'
 
 const TrendsModal = () => {
@@ -11,6 +12,12 @@ const TrendsModal = () => {
       ariaLabel: 'share-btn',
       onClickFunc: () => console.log('This was clicked'),
       iconNode:  <VisaFileUploadTiny />
+    },
+    {
+      ariaLabel: 'help-btn',
+      iconNode: <TopTooltip tooltipText='infomation mate!'>
+        <VisaInformationAltHigh/>
+      </TopTooltip>
     }
   ]
 
