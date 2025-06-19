@@ -1,5 +1,11 @@
 import NotificationsList, { NotficationsType } from '@/components/NotificationsList'
+import { Metadata } from 'next';
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "Notifications",
+  description: "User Notifications",
+};
 
 const page = () => {
     const notifications:NotficationsType[] = [
