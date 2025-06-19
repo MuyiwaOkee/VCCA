@@ -10,7 +10,7 @@ const TrendsModal = () => {
   const iconButtons:IconButtonProps[] = [
     {
       ariaLabel: 'share-btn',
-      onClickFunc: () => console.log('This was clicked'),
+      onClickFunc: () => console.log('share was clicked'),
       iconNode:  <VisaFileUploadTiny />
     },
     {
@@ -23,7 +23,8 @@ const TrendsModal = () => {
 
   return (
     <DefaultContentCard id='trends-card' headline='Trend Summary' text={cardText} primaryButton={{
-      text: 'click me'
+      text: 'click me',
+      onClickFunc: () => console.log('trend summary btn was clicked')
     }} iconButtons={iconButtons}/>
   )
 }
