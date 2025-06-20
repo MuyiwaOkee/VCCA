@@ -1,3 +1,5 @@
+import TextModal from '@/components/TextModal';
+import { VisaFileUploadTiny } from '@visa/nova-icons-react';
 import { Metadata } from 'next';
 import React from 'react'
 
@@ -7,8 +9,22 @@ export const metadata: Metadata = {
 };
 
 const PreditionPage = () => {
+  const textMsg = 'Hello';
+
+
   return (
-    <div>PreditionPage</div>
+    <section className='w-full h-[400px] bg-orange-400'>
+      <TextModal userType='Business' stateClass={{
+        state: 'viewing',
+        message: textMsg,
+      }} 
+      primaryButton={{
+        text: 'Hello',
+        icon: <VisaFileUploadTiny />
+      }} secondaryButton={{
+        text: 'Hello'
+      }} notificationTitle='Report & Next Steps'/>
+    </section>
   )
 }
 
