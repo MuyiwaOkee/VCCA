@@ -36,7 +36,7 @@ export const TopTooltip = ({ children, tooltipText }: Props) => {
 
   return (
     <Utility vFlex vJustifyContent="center">
-      <Button ref={refs.setReference} {...getReferenceProps()}>
+      <Button ref={refs.setReference} {...getReferenceProps()} buttonSize="small" colorScheme="tertiary">
         {children}
       </Button>
       {isOpen && (

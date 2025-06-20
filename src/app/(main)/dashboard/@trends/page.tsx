@@ -17,7 +17,8 @@ const TrendsModal = () => {
       ariaLabel: 'help-btn',
       iconNode: <TopTooltip tooltipText='infomation mate!'>
         <VisaInformationAltHigh/>
-      </TopTooltip>
+      </TopTooltip>,
+      isButton: true
     }
   ]
 

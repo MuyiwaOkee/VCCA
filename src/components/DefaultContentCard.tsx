@@ -25,7 +25,8 @@ type LinkProps = {
 export type IconButtonProps = {
     ariaLabel: string,
     onClickFunc?: () => void,
-    iconNode: React.ReactNode
+    iconNode: React.ReactNode,
+    isButton?: boolean
 }
 
 type Props = {
@@ -45,20 +46,22 @@ export const DefaultContentCard = ({ id, headline, subtitle, text, primaryButton
         <Utility vAlignItems="center" vFlex vFlexRow vJustifyContent="between">
           <ContentCardTitle variant="headline-4">{headline}</ContentCardTitle>
           {/* Icons list */}
-          {iconButtons && iconButtons.length > 0 && <Utility>
+          {iconButtons && iconButtons.length > 0 && <Utility vFlex vFlexRow>
             {
-                iconButtons.map(({ ariaLabel, onClickFunc, iconNode }) => (
-                    <Button
-                      key={ariaLabel}
-                      aria-label={ariaLabel}
-                      buttonSize="small"
-                      colorScheme="tertiary"
-                      iconButton
-                      onClick={onClickFunc}
-                    >
-                      {iconNode}
-                    </Button>
-                ))
+                iconButtons.map(({ ariaLabel, onClickFunc, iconNode, isButton }) =>
+                  isButton
+                    ? <React.Fragment key={ariaLabel}>{iconNode}</React.Fragment>
+                    : <Button
+                        key={ariaLabel}
+                        aria-label={ariaLabel}
+                        buttonSize="small"
+                        colorScheme="tertiary"
+                        iconButton
+                        onClick={onClickFunc}
+                      >
+                        {iconNode}
+                      </Button>
+                )
             }
           </Utility>}
         </Utility>
