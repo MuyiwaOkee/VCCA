@@ -17,13 +17,12 @@ type StateType = {
 
 type Props = {
     notificationTitle: string
-    userType: 'Business' | 'Internal',
     stateClass: StateType,
     primaryButton: ButtonProps,
     secondaryButton?: ButtonProps
 }
 
-const TextModal = ({ userType, stateClass, primaryButton, secondaryButton, notificationTitle }: Props) => {
+const TextModal = ({ stateClass, primaryButton, secondaryButton, notificationTitle }: Props) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
         <section className="w-96 min-w-56 p-6 bg-white rounded-xl inline-flex flex-col justify-start items-center gap-8">

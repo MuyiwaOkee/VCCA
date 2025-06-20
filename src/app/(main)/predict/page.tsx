@@ -13,8 +13,8 @@ const PreditionPage = () => {
 
 
   return (
-    <section className='w-full h-[400px] bg-orange-400'>
-      <TextModal userType='Business' stateClass={{
+    <section className='w-full'>
+      <TextModal stateClass={{
         state: 'viewing',
         message: textMsg,
       }} 
