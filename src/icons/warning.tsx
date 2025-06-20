@@ -1,11 +1,13 @@
 import React from 'react'
 
 type Props = {
-    fill?: string
+    fill?: string,
+    width?: number,
+    height?: number
 }
 
-const WarningIcon = ({ fill = '#C38004' }: Props) => {
-  return <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+const WarningIcon = ({ fill = '#C38004', width = 64, height = 64 }: Props) => {
+  return <svg width={width} height={height} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g opacity="0.01">
 <rect width="2.66667" height="2.66667" transform="translate(32 21.3333)" fill={fill}/>
 </g>
