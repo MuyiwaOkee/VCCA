@@ -11,7 +11,7 @@ type RouteParams = {
   }
 }
 
-const NotificationModal = ({ params }: RouteParams) => {
+const MainNotificationModal = ({ params }: RouteParams) => {
   const router = useRouter();
 
   const modalRef = useRef<TextModalRef>(null);
@@ -40,8 +40,8 @@ const NotificationModal = ({ params }: RouteParams) => {
   ];
 
   const HandleClose = () => {
-    router.back();
     modalRef.current?.toggleModal(false);
+    router.back()
   }
 
   const notfication = Notifications.find(({ id }) => id === notificationid);
@@ -78,4 +78,4 @@ const NotificationModal = ({ params }: RouteParams) => {
   }
 }
 
-export default NotificationModal
+export default MainNotificationModal
