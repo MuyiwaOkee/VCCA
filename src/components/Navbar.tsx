@@ -326,9 +326,9 @@ export const Navbar = () => {
                           {...getLabel3ReferenceProps()}
                         >
                           <VisaNotificationsLow />
-                    <Badge id={`${id}-notifications-badge`} badgeVariant="number" tag="sup">
-                      3
-                    </Badge>
+                    {unseenNotifications.length > 0 && <Badge id={`${id}-notifications-badge`} badgeVariant="number" tag="sup">
+                      {unseenNotifications.length}
+                    </Badge>}
                         </DropdownButton>
                         {notificationTrayOpen && (
                           <FloatingFocusManager
@@ -337,9 +337,24 @@ export const Navbar = () => {
                             initialFocus={-1}
                             restoreFocus={true}
                           >
-                            <div className='absolute top-24 right-8'>
+                            <DropdownMenu
+                          id={`${id}-account-menu`}
+                          aria-hidden={!notificationTrayOpen}
+                          style={
+                            {
+                              inlineSize: '180px',
+                              position: 'absolute',
+                              ...label3FloatingStyles,
+                              zIndex: 1,
+                            } as CSSProperties
+                          }
+                          ref={label3FloatingRefs.setFloating}
+                          {...getAccountFloatingProps()}
+                        >
+                          <div className='absolute top-8 right-20'>
                               <NotificationTray seenNotifications={seenNotifications} unseenNotifications={unseenNotifications}/>
                             </div>
+                        </DropdownMenu>
                           </FloatingFocusManager>
                         )}
                   </>
