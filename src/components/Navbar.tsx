@@ -45,6 +45,7 @@ import {
 import { CSSProperties, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import NotificationTray, { NotificationItemProps } from './NotificationTray';
 
 // TIP: Customize this ID, pass it as a prop, or auto-generate it with useId() from @react
 const id = 'active-element-horizontal-nav';
@@ -80,8 +81,53 @@ export const Navbar = () => {
   const [mobileLabel3MenuOpen, setMobileLabel3MenuOpen] = useState(false);
   const [expandSearch, setExpandSearch] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [label3Open, setLabel3Open] = useState(false);
+  // const [label3Open, setLabel3Open] = useState(false);
+  const [notificationTrayOpen, setNotificationTrayOpen] = useState(false)
   const searchInitiallyActivated = useRef(false);
+
+  const seenNotifications: NotificationItemProps[] = [
+      {
+          id: 'notif-001',
+          title: 'System Update Completed',
+          message: 'Your system update was successfully installed.',
+          timestamp: new Date('2025-06-19T10:00:00Z'),
+          link: {
+              href: '/updates/logs',
+              text: 'View logs'
+          },
+          seen: true
+      },
+      {
+          id: 'notif-002',
+          title: 'Weekly Backup',
+          message: 'Your weekly backup completed without errors.',
+          timestamp: new Date('2025-06-18T14:30:00Z'),
+          seen: true
+      }
+  ];
+  
+  const unseenNotifications: NotificationItemProps[] = [
+      {
+          id: 'notif-003',
+          title: 'Security Alert',
+          message: 'Unusual login detected from a new device.',
+          timestamp: new Date('2025-06-20T08:15:00Z'),
+          urgency: 'Warning',
+          link: {
+              href: '/security/settings',
+              text: 'Review activity'
+          },
+          seen: false,
+      },
+      {
+          id: 'notif-004',
+          title: 'Critical System Error',
+          message: 'A critical error occurred in the application.',
+          timestamp: new Date('2025-06-20T09:00:00Z'),
+          urgency: 'Error',
+          seen: false
+      }
+  ];
 
   useEffect(() => {
     if (expandSearch && searchInitiallyActivated.current) {
@@ -116,15 +162,15 @@ export const Navbar = () => {
     dismissAccountMenu,
   ]);
 
-  // floating-ui setup for the label3 tab dropdown
+  // floating-ui setup for the notification tray tab dropdown
   const {
     context: label3FloatingContext,
     floatingStyles: label3FloatingStyles,
     refs: label3FloatingRefs,
   } = useFloating({
     middleware: [offset(2)],
-    open: label3Open,
-    onOpenChange: setLabel3Open,
+    open: notificationTrayOpen,
+    onOpenChange: setNotificationTrayOpen,
     placement: 'bottom-start',
     whileElementsMounted: autoUpdate,
   });
@@ -268,18 +314,36 @@ export const Navbar = () => {
               </UtilityFragment>
               <Utility vFlex vGap={8} vMarginLeft={8}>
                 <UtilityFragment vContainerHide="mobile">
-                  <Button
-                    aria-label="notifications"
-                    aria-describedby={`${id}-notifications-badge`}
-                    buttonSize="large"
-                    colorScheme="tertiary"
-                    iconButton
-                  >
-                    <VisaNotificationsLow />
+                  <>
+                    <DropdownButton
+                          aria-expanded={notificationTrayOpen}
+                          aria-controls={notificationTrayOpen ? `${id}-label-dropdown-menu` : undefined}
+                          id={`${id}-label-dropdown-button`}
+                          buttonSize="large"
+                          colorScheme="tertiary"
+                          ref={label3FloatingRefs.setReference}
+                          iconButton
+                          {...getLabel3ReferenceProps()}
+                        >
+                          <VisaNotificationsLow />
                     <Badge id={`${id}-notifications-badge`} badgeVariant="number" tag="sup">
                       3
                     </Badge>
-                  </Button>
+                        </DropdownButton>
+                        {notificationTrayOpen && (
+                          <FloatingFocusManager
+                            context={label3FloatingContext}
+                            modal={false}
+                            initialFocus={-1}
+                            restoreFocus={true}
+                          >
+                            <div className='absolute top-24 right-8'>
+                              <NotificationTray seenNotifications={seenNotifications} unseenNotifications={unseenNotifications}/>
+                            </div>
+                          </FloatingFocusManager>
+                        )}
+                  </>
+                  
                 </UtilityFragment>
                 <UtilityFragment vContainerHide="mobile">
                   <Tab tag="div">

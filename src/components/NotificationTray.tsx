@@ -26,7 +26,7 @@ type NotficationTrayProps = {
 
 const NotificationTray = ({ seenNotifications, unseenNotifications }: NotficationTrayProps) => {
   return (
-    <div data-mark-as-read-button="true" data-scrollbar="false" data-section-label="true" data-show-footer="true" data-show-header="true" data-show-top-app-bar="true" data-state="Default" className="w-96 px-px py-1.5 bg-Color-Surface-surface-1 rounded-lg s shadow-[0px_4px_10px_2px_rgba(0,0,0,0.10)]  outline-offset-[-1px] outline-Color-Decorative-border/10 inline-flex flex-col justify-start items-start gap-1">
+    <div data-mark-as-read-button="true" data-scrollbar="false" data-section-label="true" data-show-footer="true" data-show-header="true" data-show-top-app-bar="true" data-state="Default" className="w-96 px-px py-1.5 bg-white rounded-lg s shadow-[0px_4px_10px_2px_rgba(0,0,0,0.10)]  outline-offset-[-1px] outline-Color-Decorative-border/10 inline-flex flex-col justify-start items-start gap-1">
       {/* Header */}
       <section className="self-stretch px-2.5 py-3 rounded-md inline-flex justify-start items-center gap-2">
           <h4 className="flex-1 self-stretch justify-center text-[#4a4a4a] text-xs font-semibold font-['Noto_Sans'] uppercase leading-3 tracking-wide">Notifications</h4>
