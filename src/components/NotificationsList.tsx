@@ -7,7 +7,8 @@ export type NotficationsType = {
     id: string,
     headline: string
     date: Date,
-    text: string
+    text: string,
+    href: string
 }
 
 type Props = {
@@ -21,8 +22,8 @@ const NotificationsList = ({ notifications }: Props) => {
     <SectionDivider />
     <div className="self-stretch flex flex-col justify-start items-start overflow-y-auto max-h-[512px]">
         {
-        notifications.map(({ id, headline, date, text}) => {
-            return <ClickableContentCard key={id} headline={headline} subtitle={date.toISOString().split('T')[0]}  text={text}/>
+        notifications.map(({ id, headline, date, text, href }) => {
+            return <ClickableContentCard href={href} key={id} headline={headline} subtitle={date.toISOString().split('T')[0]}  text={text}/>
         })
     }
     </div>

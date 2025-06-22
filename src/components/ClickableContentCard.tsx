@@ -7,16 +7,19 @@ import {
   Typography,
   Utility,
 } from '@visa/nova-react';
+import Link from 'next/link';
 
 type Props = {
     headline: string,
     subtitle?: string,
-    text?: string
+    text?: string,
+    href: string
 }
 
-export const ClickableContentCard = ({ headline, subtitle, text }: Props) => {
+export const ClickableContentCard = ({ headline, subtitle, text, href }: Props) => {
   return (
-    <ContentCard clickable tag="button" className='w-full'>
+    <Link href={href} className='w-full'>
+      <ContentCard clickable tag="button" className='w-full' >
       <Utility element={<ContentCardBody tag="span" />} vAlignItems="start" vFlex vFlexCol vGap={4}>
         <ContentCardTitle variant="headline-4" tag="span">
           {headline}
@@ -30,5 +33,6 @@ export const ClickableContentCard = ({ headline, subtitle, text }: Props) => {
         </Utility>}
       </Utility>
     </ContentCard>
+    </Link>
   );
 };

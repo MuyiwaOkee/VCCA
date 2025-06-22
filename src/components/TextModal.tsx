@@ -1,3 +1,4 @@
+"use client"
 import React, { forwardRef, useImperativeHandle, useState } from 'react'
 import { DeterminateCircularProgress } from './DeterminateCircularProgress'
 import { Button } from '@visa/nova-react'
@@ -7,6 +8,7 @@ import { VisaCloseTiny } from '@visa/nova-icons-react'
 
 type ButtonProps = {
     text: string,
+    onClickFunc?: () => void,
     icon?: React.ReactNode,
 }
 
@@ -21,15 +23,23 @@ type Props = {
     stateClass: StateType,
     primaryButton: ButtonProps,
     secondaryButton?: ButtonProps
-    isOpen?: boolean
+    isOpen?: boolean,
+    onCloseFunc?: () => void
 }
 
 export type TextModalRef = {
     toggleModal: (show: boolean) => void
 }
 
-const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, secondaryButton, notificationTitle, isOpen = false }, ref) => {
+const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, secondaryButton, notificationTitle, isOpen = false , onCloseFunc}, ref) => {
     const [isVisible, setIsVisible] = useState(isOpen);
+
+    const HandleOnClose = () => {
+        setIsVisible(false)
+        
+        if(onCloseFunc)
+            onCloseFunc();
+    }
 
     // Expose the toggle function via ref
     useImperativeHandle(ref, () => ({
@@ -43,7 +53,7 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, 
     return (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
             <section className="w-96 min-w-56 p-6 bg-white rounded-xl relative inline-flex flex-col justify-start items-center gap-8">
-                <button className='absolute right-6 cursor-pointer' onClick={() => setIsVisible(false)}>
+                <button className='absolute right-6 cursor-pointer' onClick={HandleOnClose}>
                     <VisaCloseTiny />
                 </button>
                 <h3 className="justify-start text-Color-Text-text text-2xl font-medium font-['Noto_Sans'] leading-loose">{notificationTitle}</h3>
@@ -55,7 +65,7 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, 
                 {/* Button(s) */}
                 <div className="inline-flex justify-center items-start gap-8">
                     {/* Primary */}
-                    <Button destructive={stateClass.state !== 'viewing'} colorScheme={stateClass.state === 'loading' ? 'tertiary' : undefined}>
+                    <Button destructive={stateClass.state !== 'viewing'} colorScheme={stateClass.state === 'loading' ? 'tertiary' : undefined} onClick={primaryButton.onClickFunc}>
                         {primaryButton.icon}
                         {primaryButton.text}
                     </Button>

@@ -203,7 +203,7 @@ export const Navbar = () => {
                           aria-current={pathname === '/dashboard' ? "page" : false}
                           buttonSize="large"
                           colorScheme="tertiary"
-                          element={<Link href="./dashboard">Dashboard</Link>}
+                          element={<Link href="/dashboard">Dashboard</Link>}
                         />
                       </Tab>
                       <Tab>
