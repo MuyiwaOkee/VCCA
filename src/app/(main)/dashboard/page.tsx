@@ -25,7 +25,7 @@ const DashbaordPage = () => {
   
   const multiselectItems:MultiselectItem[] = [
     { value: 'Interest rate', color: '#1435cb'},
-    { value: 'Option B', color: '#0000FF' },
+    { value: 'Option B', color: '#FF0000' },
     { value: 'Option C', color: '#00FF00' },
   ];
 
@@ -42,7 +42,7 @@ const DashbaordPage = () => {
     });
   };
 
-  const data = generateMockData();
+  // const data = generateMockData();
   
   // Get size of div
   useEffect(() => {
@@ -57,6 +57,15 @@ const DashbaordPage = () => {
   // Create the graphs
   useEffect(() => {
     if (!svgRef.current) return;
+
+
+    const datapoints = selectedIndicators.map(({ color }) =>{
+      return {
+        strokeColor: color,
+        color: '#5868ef',
+        data: generateMockData()
+      };
+    })
 
     // Clear previous content
     d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
@@ -73,14 +82,20 @@ const DashbaordPage = () => {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // X scale - time scale for months
+      if( datapoints.length == 0) return;
+
+   // Get combined domain across all series
+    const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
+    const allDates = datapoints.flatMap(s => s.data.map(d => d.date));
+
+    // X scale
     const x = d3.scaleTime()
-      .domain(d3.extent(data, d => d.date) as [Date, Date])
+      .domain(d3.extent(allDates) as [Date, Date])
       .range([0, width]);
 
-    // Y scale - linear scale for interest rates
+    // Y scale
     const y = d3.scaleLinear()
-      .domain([d3.min(data, d => d.value)! * 0.95, d3.max(data, d => d.value)! * 1.05]) // Add 5% padding
+      .domain([d3.min(allValues)! * 0.95, d3.max(allValues)! * 1.05])
       .range([height, 0]);
 
     // Add X axis
@@ -109,33 +124,36 @@ const DashbaordPage = () => {
       .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
       .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
 
-    // Create line generator
-    const line = d3.line<GraphDataType>()
-      .x(d => x(d.date))
-      .y(d => y(d.value));
+      // Draw each series
+    datapoints.forEach(({ data, strokeColor, color }, key) => {
+      // Create line generator for this series
+      const line = d3.line<GraphDataType>()
+        .x(d => x(d.date))
+        .y(d => y(d.value));
 
-    // Add dashed line
-    svg.append('path')
-      .datum(data)
-      .attr('fill', 'none')
-      .attr('stroke', '#1435cb')
-      .attr('stroke-width', 1.5)
-      .attr('stroke-dasharray', '10,5')
-      .attr('d', line);
+      // Add line path
+      svg.append('path')
+        .datum(data)
+        .attr('fill', 'none')
+        .attr('stroke', strokeColor)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '5,5')
+        .attr('d', line);
 
-    // Add circles for data points
-    svg.selectAll('.dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .attr('class', 'dot')
-      .attr('cx', d => x(d.date))
-      .attr('cy', d => y(d.value))
-      .attr('r', 5)
-      .attr('fill', '#5868ef')
-      .attr('stroke', '#1435cb')
-      .attr('stroke-width', 2);
-  }, [data]);
+      // Add circles for data points
+      svg.selectAll(`.dot-${key}`)
+        .data(data)
+        .enter()
+        .append('circle')
+        .attr('class', `dot-${key}`)
+        .attr('cx', d => x(d.date))
+        .attr('cy', d => y(d.value))
+        .attr('r', 5)
+        .attr('fill', color)
+        .attr('stroke', strokeColor)
+        .attr('stroke-width', 2);
+    });
+  }, [selectedIndicators]);
 
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
