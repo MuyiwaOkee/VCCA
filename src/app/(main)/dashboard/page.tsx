@@ -13,7 +13,9 @@ type GraphDataType = {
 };
 
 const DashbaordPage = () => {
-  const [selectedIndicators, setSelectedIndicators] = useState<MultiselectRef | undefined>(undefined);
+  const [isMonthlyTimescale, toggleMonthlyTimescale] = useState(true);
+  const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number } | undefined>(undefined)
+  const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -21,13 +23,12 @@ const DashbaordPage = () => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const multiSelectRef = useCallback((value: MultiselectRef) => {
-    value && setSelectedIndicators(value);
+    value && setMultiSelectData(value);
   }, []);
   
   const multiselectItems:MultiselectItem[] = [
-    { value: 'Interest rate', color: '#1435cb'},
-    { value: 'Option B', color: '#FF0000' },
-    { value: 'Option C', color: '#00FF00' },
+    { value: 'Interest rate', strokeColor: '#1435cb', fill: '#5868ef'},
+    { value: 'Option B', strokeColor: '#DCB30F', fill: '#f4d35e' },
   ];
 
   // Mock data - 12 months of interest rates
@@ -42,14 +43,12 @@ const DashbaordPage = () => {
       return { value, date };
     });
   };
-
-  // const data = generateMockData();
   
   // Get size of div
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const width = containerRef.current.clientWidth;
+    const width = containerRef.current.offsetWidth;
     const height = containerRef.current.offsetHeight;
 
     setDimensions({ width, height });
@@ -59,15 +58,22 @@ const DashbaordPage = () => {
   useEffect(() => {
     if (!svgRef.current) return;
 
-    if(!selectedIndicators) return;
+    if(!multiSelectData) return;
 
-    const datapoints = selectedIndicators?.selectedItems.map(({ color }) =>{
+    const datapoints = multiSelectData?.selectedItems.map(({ strokeColor, fill }) =>{
       return {
-        strokeColor: color,
-        color: '#5868ef',
+        strokeColor,
+        fill,
         data: generateMockData()
       };
     })
+
+    // const percentChange = datapoints[0].data[datapoints[0].data.length].value / datapoints[0].data[0].value;
+
+    // setCurrentPriceInfomation({
+    //   value: datapoints[0].data[datapoints[0].data.length].value,
+    //   percentChange
+    // });
 
     // Clear previous content
     d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
@@ -127,7 +133,7 @@ const DashbaordPage = () => {
       .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
 
       // Draw each series
-    datapoints.forEach(({ data, strokeColor, color }, key) => {
+    datapoints.forEach(({ data, strokeColor, fill }, key) => {
       // Create line generator for this series
       const line = d3.line<GraphDataType>()
         .x(d => x(d.date))
@@ -151,27 +157,27 @@ const DashbaordPage = () => {
         .attr('cx', d => x(d.date))
         .attr('cy', d => y(d.value))
         .attr('r', 5)
-        .attr('fill', color)
+        .attr('fill', fill)
         .attr('stroke', strokeColor)
         .attr('stroke-width', 2);
     });
-  }, [selectedIndicators]);
+  }, [multiSelectData]);
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
       {/* Top Bar */}
-      <div className={cn("w-full inline-flex flex-col justify-start items-start", selectedIndicators?.isOpen ? 'gap-24' : 'gap-0')}>
+      <div className={cn("w-full inline-flex flex-col justify-start items-start", multiSelectData?.isOpen ? 'gap-24' : 'gap-2')}>
         {/* Upper Bar */}
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
-        <div className={cn(selectedIndicators?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
+        <div className={cn(multiSelectData?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
           <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} />
         </div>
         {/* Time btns */}
         <div className="flex absolute top-6 right-0 justify-start items-center gap-4">
             <div className="flex justify-start items-center gap-2">
-                <Button colorScheme='secondary'>1M</Button>
-                <Button colorScheme='secondary'>3M</Button>
+                <Button colorScheme='secondary' className={cn(isMonthlyTimescale ? 'bg-[#B3D7FF]/90' : '')} onClick={() => toggleMonthlyTimescale(true)}>1M</Button>
+                <Button colorScheme='secondary' className={cn(!isMonthlyTimescale ? 'bg-[#B3D7FF]/90' : '')} onClick={() => toggleMonthlyTimescale(false)}>3M</Button>
             </div>
             {/* Year selector */}
             <div className="h-10 flex justify-center items-center gap-1">
@@ -186,16 +192,16 @@ const DashbaordPage = () => {
       {/* Current selected data points */}
         <div className="flex justify-start items-center gap-4">
            {
-            selectedIndicators?.selectedItems.map(({ value, color}, key) => {
-              return  <DataPointIndicator title={value} color={color} key={key}/>
+            multiSelectData?.selectedItems.map(({ value, strokeColor }, key) => {
+              return  <DataPointIndicator title={value} color={strokeColor} key={key}/>
             })
            }
         </div>
         {/* First Indicator information */}
-        <div className="flex justify-start items-center gap-2.5">
-            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">0.5 Points</p>
-            <p className="justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none">+0.1 points (20%)</p>
-        </div>
+        {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">
+            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.value}</p>
+            <p className="justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none">{currentPriceInfomation.percentChange}</p>
+        </div>}
     </section>
       </div>
       {/* Graph */}
