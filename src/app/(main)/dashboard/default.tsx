@@ -2,7 +2,7 @@ import React from 'react'
 
 const DefaultDashbaordPage = () => {
   return (
-    <div>DashbaordPage</div>
+   <section className='w-full h-full bg-black'></section>
   )
 }
 
