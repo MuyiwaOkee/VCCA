@@ -4,7 +4,6 @@ import { VisaChevronLeftTiny, VisaChevronRightTiny } from "@visa/nova-icons-reac
 import React, { useCallback, useState } from 'react'
 import DataPointIndicator from '@/components/DataPointIndicator';
 import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScroll } from '@/components/MultiSelectWithScrollbar';
-import cn from '@/utils/cn';
 
 const DashbaordPage = () => {
   const [selectedIndicators, setSelectedIndicators] = useState<MultiselectItem[]>([]);
@@ -24,11 +23,11 @@ const DashbaordPage = () => {
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
       {/* Top Bar */}
-      <div className="w-full inline-flex flex-col justify-start items-start gap-20">
+      <div className="w-full inline-flex flex-col justify-start items-start gap-2">
         {/* Upper Bar */}
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
-        <div className='absolute top-0 left-0'>
+        <div>
           <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} />
         </div>
         {/* Time btns */}
