@@ -147,11 +147,45 @@ const DashbaordPage = () => {
 
     // Add Y axis
     svg.append('g')
-      .call(d3.axisLeft(y).tickFormat(d => `${d}%`))
+      .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`))
       .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
       .call(g => g.select('.domain').remove()) // Remove axis line
       .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
       .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
+
+
+      // Add tooltip container
+    const tooltip = d3.select(svgRef.current)
+      .append("g")
+      .attr("class", "tooltip-container")
+      .style("display", "none");
+
+    // Tooltip rectangle
+    tooltip.append("rect")
+      .attr("width", 140)
+      .attr("height", 50)
+      .attr("rx", 4)
+      .attr("fill", "white")
+      .attr("stroke", "#ddd")
+      .attr("stroke-width", 1)
+      .style("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.2))"); // Visual prominence;
+
+    // Tooltip date text
+    tooltip.append("text")
+      .attr("class", "tooltip-date")
+      .attr("x", 8)
+      .attr("y", 20)
+      .attr("font-size", "12px")
+      .attr("fill", "#333");
+
+    // Tooltip value text
+    tooltip.append("text")
+      .attr("class", "tooltip-value")
+      .attr("x", 8)
+      .attr("y", 38)
+      .attr("font-size", "12px")
+      .attr("font-weight", "bold")
+      .attr("fill", "#333");
 
       // Draw each series
     datapoints.forEach(({ data, strokeColor, fill }, key) => {
@@ -180,9 +214,29 @@ const DashbaordPage = () => {
         .attr('r', 5)
         .attr('fill', fill)
         .attr('stroke', strokeColor)
-        .attr('stroke-width', 2);
+        .attr('stroke-width', 2)
+        .attr("cursor", "pointer")
+        .on("mouseover", function(event, d) {
+          // Show tooltip
+          tooltip.style("display", "block");
+          
+          // Update tooltip content
+          tooltip.select(".tooltip-date")
+            .text(d3.timeFormat("%b %d, %Y")(d.date));
+            
+          tooltip.select(".tooltip-value")
+            .text(`Value: ${d.value.toFixed(2)}%`);
+            
+          // Position tooltip near the circle
+          const [xPos, yPos] = d3.pointer(event, svgRef.current);
+          tooltip.attr("transform", `translate(${xPos + 10},${yPos - 40})`);
+        })
+        .on("mouseout", function() {
+          // Hide tooltip
+          tooltip.style("display", "none");
+        });
     });
-  }, [multiSelectData, dimensions, currentYear]);
+  }, [multiSelectData, dimensions, currentYear, isMonthlyTimescale]);
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
@@ -221,12 +275,12 @@ const DashbaordPage = () => {
         {/* First Indicator information */}
         {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">
             <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.value.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'}</p>
-            {currentPriceInfomation.percentChange && <p className={cn("justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none", currentPriceInfomation.difference > 0 ? 'text-[#2C6849]' : 'text-[#AD2929]' )}>{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.difference.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'} {currentPriceInfomation.percentChange?.toFixed(1)}%</p>}
+            {currentPriceInfomation.percentChange && <p className={cn("justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none", currentPriceInfomation.difference > 0 ? 'text-[#2C6849]' : 'text-[#AD2929]' )}>{currentPriceInfomation.difference > 0 && '+'}{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.difference.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'} {currentPriceInfomation.difference > 0 && '+'}{currentPriceInfomation.percentChange?.toFixed(1)}%</p>}
         </div>}
     </section>
       </div>
       {/* Graph */}
-      <div ref={containerRef} className='w-full flex-1 min-h-[300px]'>
+      <div ref={containerRef} className='w-full flex-1 min-h-[300px] z-50'>
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
     </section>
