@@ -12,6 +12,13 @@ type GraphDataType = {
   date: Date;
 };
 
+type DatapointsType = {
+    strokeColor: string;
+    fill: string;
+    data: GraphDataType[];
+    valueType: "Price" | "Points";
+}
+
 const DashbaordPage = () => {
   const [isMonthlyTimescale, toggleMonthlyTimescale] = useState(true);
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
@@ -71,11 +78,12 @@ const DashbaordPage = () => {
 
     if(!multiSelectData) return;
 
-    const datapoints = multiSelectData?.selectedItems.map(({ strokeColor, fill }) =>{
+    const datapoints:DatapointsType[] = multiSelectData?.selectedItems.map(({ strokeColor, fill, value }) =>{
       return {
         strokeColor,
         fill,
-        data: generateMockData()
+        data: generateMockData(),
+        valueType: value === 'Interest rate' ? 'Points' : 'Price'
       };
     })
 
@@ -90,7 +98,7 @@ const DashbaordPage = () => {
       value: last,
       percentChange,
       difference,
-      valueType: multiSelectData.selectedItems[0].value === 'Interest rate' ? 'Points' : 'Price'
+      valueType: datapoints[0].valueType 
     });
   } else {
     setCurrentPriceInfomation(undefined);
@@ -191,7 +199,7 @@ const DashbaordPage = () => {
       .attr("fill", "#333");
 
       // Draw each series
-    datapoints.forEach(({ data, strokeColor, fill }, key) => {
+    datapoints.forEach(({ data, strokeColor, fill, valueType }, key) => {
       // Create line generator for this series
       const line = d3.line<GraphDataType>()
         .x(d => x(d.date))
@@ -252,7 +260,7 @@ const DashbaordPage = () => {
             .text(d3.timeFormat("%b %d, %Y")(d.date));
           
           tooltip.select(".tooltip-value")
-            .text(`Value: ${d.value.toFixed(2)}%`);
+            .text(`Value: ${valueType == 'Price' ? '£' : ''}${d.value.toFixed(2)}${valueType == 'Points' ? '%' : ''}`);
                 })
                 .on("mouseout", function() {
                   // Hide tooltip
