@@ -13,6 +13,7 @@
     "@visa/nova-icons-react": "^2.0.4",
     "@visa/nova-react": "^2.5.4",
     "argon2": "^0.43.0",
+    "d3": "^7.9.0",
     "downshift": "^9.0.9",
     "jose": "^6.0.11",
     "next": "15.3.3",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/d3": "^7.4.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
