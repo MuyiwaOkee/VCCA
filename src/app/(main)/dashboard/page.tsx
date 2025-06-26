@@ -14,7 +14,7 @@ type GraphDataType = {
 
 const DashbaordPage = () => {
   const [isMonthlyTimescale, toggleMonthlyTimescale] = useState(true);
-  const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number } | undefined>(undefined)
+  const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
   const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -56,7 +56,7 @@ const DashbaordPage = () => {
 
   // Create the graphs
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current  || !dimensions.width || !dimensions.height) return;
 
     if(!multiSelectData) return;
 
@@ -68,13 +68,23 @@ const DashbaordPage = () => {
       };
     })
 
-    // const percentChange = datapoints[0].data[datapoints[0].data.length].value / datapoints[0].data[0].value;
+    let percentChange: number | undefined = undefined;
+  if (datapoints.length > 0 && datapoints[0].data.length > 1) {
+    const first = datapoints[0].data[0].value;
+    const last = datapoints[0].data[datapoints[0].data.length - 1].value;
+    const difference = last - first;
+    percentChange = ((difference / first) * 100);
 
-    // setCurrentPriceInfomation({
-    //   value: datapoints[0].data[datapoints[0].data.length].value,
-    //   percentChange
-    // });
-
+    setCurrentPriceInfomation({
+      value: last,
+      percentChange,
+      difference,
+      valueType: multiSelectData.selectedItems[0].value === 'Interest rate' ? 'Points' : 'Price'
+    });
+  } else {
+    setCurrentPriceInfomation(undefined);
+  }
+ 
     // Clear previous content
     d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
 
@@ -199,8 +209,8 @@ const DashbaordPage = () => {
         </div>
         {/* First Indicator information */}
         {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">
-            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.value}</p>
-            <p className="justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none">{currentPriceInfomation.percentChange}</p>
+            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.value.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'}</p>
+            {currentPriceInfomation.percentChange && <p className={cn("justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none", currentPriceInfomation.difference > 0 ? 'text-[#2C6849]' : 'text-[#AD2929]' )}>{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.difference.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'} {currentPriceInfomation.percentChange?.toFixed(1)}%</p>}
         </div>}
     </section>
       </div>
