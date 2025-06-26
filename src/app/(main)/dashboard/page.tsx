@@ -34,7 +34,6 @@ const DashbaordPage = () => {
   // Mock data - 12 months of interest rates
   const generateMockData = (): GraphDataType[] => {
     const months = Array.from({ length: 12 }, (_, i) => i);
-    const currentYear = new Date().getFullYear();
     
     return months.map(month => {
       // Random interest rate between 1% and 10%
@@ -48,15 +47,27 @@ const DashbaordPage = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const width = containerRef.current.offsetWidth;
-    const height = containerRef.current.offsetHeight;
+    const resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setDimensions({ width, height });
+      }
+    });
 
-    setDimensions({ width, height });
+    resizeObserver.observe(containerRef.current);
+    
+    // Initial measurement (in case ResizeObserver doesn't fire immediately)
+    const initialWidth = containerRef.current.clientWidth;
+    const initialHeight = containerRef.current.clientHeight;
+    setDimensions({ width: initialWidth, height: initialHeight });
+
+    return () => resizeObserver.disconnect();
   }, []);
 
   // Create the graphs
   useEffect(() => {
-    if (!svgRef.current  || !dimensions.width || !dimensions.height) return;
+    // Only render when we have valid dimensions and data
+    if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
 
     if(!multiSelectData) return;
 
@@ -171,7 +182,7 @@ const DashbaordPage = () => {
         .attr('stroke', strokeColor)
         .attr('stroke-width', 2);
     });
-  }, [multiSelectData]);
+  }, [multiSelectData, dimensions, currentYear]);
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
@@ -215,7 +226,7 @@ const DashbaordPage = () => {
     </section>
       </div>
       {/* Graph */}
-      <div ref={containerRef} className='w-full h-full'>
+      <div ref={containerRef} className='w-full flex-1 min-h-[300px]'>
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
     </section>
