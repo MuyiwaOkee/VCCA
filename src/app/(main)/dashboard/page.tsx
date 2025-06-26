@@ -155,8 +155,11 @@ const DashbaordPage = () => {
 
 
       // Add tooltip container
-    const tooltip = d3.select(svgRef.current)
-      .append("g")
+      const tooltipGroup = svg.append("g")
+  .attr("class", "tooltip-group")
+  .style("pointer-events", "none");
+
+    const tooltip = tooltipGroup.append("g")
       .attr("class", "tooltip-container")
       .style("display", "none");
 
@@ -217,25 +220,45 @@ const DashbaordPage = () => {
         .attr('stroke-width', 2)
         .attr("cursor", "pointer")
         .on("mouseover", function(event, d) {
-          // Show tooltip
-          tooltip.style("display", "block");
+          // Bring tooltip to front
+          tooltipGroup.node()?.parentNode?.appendChild(tooltipGroup.node() as Node);
+  
+          // Get mouse position relative to SVG
+          const [xPos, yPos] = d3.pointer(event, svgRef.current);
+          const tooltipWidth = 140;
+          const tooltipHeight = 50;
+          
+          // Calculate available space
+          const svgWidth = dimensions.width;
+          const rightSpace = svgWidth - xPos;
+          const topSpace = yPos;
+          
+          // Determine tooltip position with edge detection
+          let tooltipX = xPos - 30;
+          let tooltipY = yPos - 40;
+          
+          // Adjust for right edge
+          if (rightSpace < tooltipWidth + 20) {
+            tooltipX = xPos - tooltipWidth - 60;
+          }
+          
+          // Position and show tooltip
+          tooltip
+            .style("display", "block")
+            .attr("transform", `translate(${tooltipX},${tooltipY})`);
           
           // Update tooltip content
           tooltip.select(".tooltip-date")
             .text(d3.timeFormat("%b %d, %Y")(d.date));
-            
+          
           tooltip.select(".tooltip-value")
             .text(`Value: ${d.value.toFixed(2)}%`);
-            
-          // Position tooltip near the circle
-          const [xPos, yPos] = d3.pointer(event, svgRef.current);
-          tooltip.attr("transform", `translate(${xPos + 10},${yPos - 40})`);
-        })
-        .on("mouseout", function() {
-          // Hide tooltip
-          tooltip.style("display", "none");
-        });
-    });
+                })
+                .on("mouseout", function() {
+                  // Hide tooltip
+                  tooltip.style("display", "none");
+                });
+            });
   }, [multiSelectData, dimensions, currentYear, isMonthlyTimescale]);
   
   return (
