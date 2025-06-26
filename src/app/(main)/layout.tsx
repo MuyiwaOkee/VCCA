@@ -11,7 +11,7 @@ export default function RootLayout({
   notification: React.ReactNode
 }>) {
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-x-hidden">
         {logout}
         {notification}
         <Navbar />

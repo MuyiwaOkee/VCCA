@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import DataPointIndicator from '@/components/DataPointIndicator';
 import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScroll } from '@/components/MultiSelectWithScrollbar';
 import * as d3 from 'd3';
+import cn from '@/utils/cn';
 
 type GraphDataType = {
   value: number;
@@ -12,15 +13,15 @@ type GraphDataType = {
 };
 
 const DashbaordPage = () => {
-  const [selectedIndicators, setSelectedIndicators] = useState<MultiselectItem[]>([]);
+  const [selectedIndicators, setSelectedIndicators] = useState<MultiselectRef | undefined>(undefined);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const multiSelectRef = useCallback((value: MultiselectItem[]) => {
-    setSelectedIndicators(value);
+  const multiSelectRef = useCallback((value: MultiselectRef) => {
+    value && setSelectedIndicators(value);
   }, []);
   
   const multiselectItems:MultiselectItem[] = [
@@ -58,8 +59,9 @@ const DashbaordPage = () => {
   useEffect(() => {
     if (!svgRef.current) return;
 
+    if(!selectedIndicators) return;
 
-    const datapoints = selectedIndicators.map(({ color }) =>{
+    const datapoints = selectedIndicators?.selectedItems.map(({ color }) =>{
       return {
         strokeColor: color,
         color: '#5868ef',
@@ -154,15 +156,15 @@ const DashbaordPage = () => {
         .attr('stroke-width', 2);
     });
   }, [selectedIndicators]);
-
+  
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
       {/* Top Bar */}
-      <div className="w-full inline-flex flex-col justify-start items-start gap-20">
+      <div className={cn("w-full inline-flex flex-col justify-start items-start", selectedIndicators?.isOpen ? 'gap-24' : 'gap-0')}>
         {/* Upper Bar */}
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
-        <div className='absolute top-0 left-0'>
+        <div className={cn(selectedIndicators?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
           <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} />
         </div>
         {/* Time btns */}
@@ -184,7 +186,7 @@ const DashbaordPage = () => {
       {/* Current selected data points */}
         <div className="flex justify-start items-center gap-4">
            {
-            selectedIndicators.map(({ value, color}, key) => {
+            selectedIndicators?.selectedItems.map(({ value, color}, key) => {
               return  <DataPointIndicator title={value} color={color} key={key}/>
             })
            }

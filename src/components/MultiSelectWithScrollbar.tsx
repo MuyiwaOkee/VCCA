@@ -66,7 +66,7 @@ export const comboboxStateReducer = <ItemType,>(
   }
 };
 
-export const MultiselectWithMultipleSelectionsAndVerticalScroll = forwardRef<MultiselectItem[], MultiselectWithMultipleSelectionsAndVerticalScrollProps>(
+export const MultiselectWithMultipleSelectionsAndVerticalScroll = forwardRef<MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScrollProps>(
   ({ items, label, isRequired = false, id }, ref) => {
     const [inputValue, setInputValue] = useState('');
     const [selectedItems, setSelectedItems] = useState<MultiselectItem[]>(items.slice(0, 1));
@@ -110,7 +110,7 @@ export const MultiselectWithMultipleSelectionsAndVerticalScroll = forwardRef<Mul
     });
 
     // Expose selectedItems via ref
-    useImperativeHandle(ref, () => selectedItems, [selectedItems]);
+    useImperativeHandle(ref, () => ({ selectedItems, isOpen }), [selectedItems, isOpen]);
 
     return (
       <Combobox style={{ maxInlineSize: '290px' }}>
