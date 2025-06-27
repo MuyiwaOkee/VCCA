@@ -11,10 +11,7 @@ function delayTwoSeconds(): Promise<void> {
 
 const NotificationsModal = async () => {
   await delayTwoSeconds();
-
-  throw new Error("Test error that is a little longer for testing purposes. Test error that is a little longer for testing purposes.Test error that is a little longer for testing purposes.Test error that is a little longer for testing purposes.");
   
-
     const notifications:NotficationsType[] = [
         {
     id: "1",
