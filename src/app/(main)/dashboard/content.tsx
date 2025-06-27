@@ -6,6 +6,7 @@ import DataPointIndicator from '@/components/DataPointIndicator';
 import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScroll } from '@/components/MultiSelectWithScrollbar';
 import * as d3 from 'd3';
 import cn from '@/utils/cn';
+import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 
 type GraphDataType = {
   value: number;
@@ -20,10 +21,13 @@ type DatapointsType = {
 }
 
 const DashbaordPage = () => {
-  const [isMonthlyTimescale, toggleMonthlyTimescale] = useState(true);
+  // Search query params
+  const [isMonthlyTimescale, toggleMonthlyTimescale] = useQueryState('monthlytimescale', parseAsBoolean.withDefault(true));
+  const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(new Date().getFullYear()));
+  const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
+
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
   const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,12 +35,21 @@ const DashbaordPage = () => {
 
   const multiSelectRef = useCallback((value: MultiselectRef) => {
     value && setMultiSelectData(value);
+
+    if(value?.selectedItems) {
+      const sourceNames = value.selectedItems.map(({ value }) => {return value});
+      setSelectedSources(sourceNames);
+    }
   }, []);
   
   const multiselectItems:MultiselectItem[] = [
     { value: 'Interest rate', strokeColor: '#1435cb', fill: '#5868ef'},
     { value: 'Option B', strokeColor: '#DCB30F', fill: '#f4d35e' },
   ];
+
+  const defaultSelectedItems = multiselectItems.filter(({ value }) => selectedSources?.includes(value));
+
+  console.log(defaultSelectedItems);
 
   // Mock data - 12 months of interest rates
   const generateMockData = (): GraphDataType[] => {
@@ -277,7 +290,7 @@ const DashbaordPage = () => {
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
         <div className={cn(multiSelectData?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
-          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} />
+          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} defaultSelectedItems={defaultSelectedItems}/>
         </div>
         {/* Time btns */}
         <div className="flex absolute top-6 right-0 justify-start items-center gap-4">

@@ -8,6 +8,7 @@ import "./globals.css";
 import DefaultFooter from "@/components/DefaultFooter";
 // main font
 import { Noto_Sans } from 'next/font/google'
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={noto_Sans.className}>
       <body>
-        {children}
+          <NuqsAdapter>{children}</NuqsAdapter>
         <DefaultFooter/>
       </body>
     </html>

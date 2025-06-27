@@ -24,13 +24,14 @@ export type MultiselectWithMultipleSelectionsAndVerticalScrollProps = {
     label: string,
     isRequired?: boolean,
     items: MultiselectItem[],
-    id: string
+    id: string,
+    defaultSelectedItems?: MultiselectItem[]
 }
 
 export type MultiselectRef = {
   selectedItems: MultiselectItem[];
   isOpen: boolean
-};
+} | null;
 
 export const itemToString = (item: MultiselectItem | null) => (item ? item.value : '');
 
@@ -67,9 +68,9 @@ export const comboboxStateReducer = <ItemType,>(
 };
 
 export const MultiselectWithMultipleSelectionsAndVerticalScroll = forwardRef<MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScrollProps>(
-  ({ items, label, isRequired = false, id }, ref) => {
+  ({ items, label, isRequired = false, id, defaultSelectedItems }, ref) => {
     const [inputValue, setInputValue] = useState('');
-    const [selectedItems, setSelectedItems] = useState<MultiselectItem[]>(items.slice(0, 1));
+    const [selectedItems, setSelectedItems] = useState<MultiselectItem[]>(defaultSelectedItems || items.slice(0, 1));
 
     const { getDropdownProps, removeSelectedItem } = useMultipleSelection({
       selectedItems,
