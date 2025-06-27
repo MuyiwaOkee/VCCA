@@ -10,7 +10,8 @@ function delayTwoSeconds(): Promise<void> {
 }
 
 const page = async () => {
-    await delayTwoSeconds()
+    await delayTwoSeconds();
+
   return <DashbaordPage />
 }
 
