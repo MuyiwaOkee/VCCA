@@ -6,7 +6,6 @@ type Props = {
 }
 
 const DataPointIndicator = ({ color, title }: Props) => {
-    // const classNameString = ;
   return (
     <div className="flex justify-start items-center gap-1">
         <div className='w-6 h-1' style={{backgroundColor: color}}/>
