@@ -155,7 +155,7 @@ const DashbaordPage = () => {
 
     // Add Y axis
     svg.append('g')
-      .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`))
+      .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${datapoints[0].valueType == 'Price' ? '£' : ''}${d}${datapoints[0].valueType == 'Points' ? '%' : ''}`))
       .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
       .call(g => g.select('.domain').remove()) // Remove axis line
       .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
@@ -305,7 +305,7 @@ const DashbaordPage = () => {
         </div>
         {/* First Indicator information */}
         {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">
-            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.value.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'}</p>
+            <p className="justify-center text-Color-Text-text text-xs font-bold font-['Noto_Sans'] leading-none">{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.value.toFixed(2)}{currentPriceInfomation.valueType == 'Points' && ' Points'}</p>
             {currentPriceInfomation.percentChange && <p className={cn("justify-center text-Color-Messaging-positive-text text-xs font-normal font-['Noto_Sans'] leading-none", currentPriceInfomation.difference > 0 ? 'text-[#2C6849]' : 'text-[#AD2929]' )}>{currentPriceInfomation.difference > 0 && '+'}{currentPriceInfomation.valueType == 'Price' && '£'}{currentPriceInfomation.difference.toFixed(1)}{currentPriceInfomation.valueType == 'Points' && ' Points'} {currentPriceInfomation.difference > 0 && '+'}{currentPriceInfomation.percentChange?.toFixed(1)}%</p>}
         </div>}
     </section>

@@ -1,7 +1,17 @@
 import NotificationsList, { NotficationsType } from '@/components/NotificationsList'
 import React from 'react'
 
-const NotificationsModal = () => {
+function delayTwoSeconds(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, 2000); // 2000 milliseconds = 2 seconds
+  });
+}
+
+const NotificationsModal = async () => {
+  await delayTwoSeconds();
+
     const notifications:NotficationsType[] = [
         {
     id: "1",
