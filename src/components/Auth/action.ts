@@ -137,7 +137,15 @@ export const Signup = async ({ section }: SignupOutput, formData: FormData | und
             });
 
             if(!response.ok) 
-                throw new Error("Problem connecting to server");
+                switch (response.status) {
+                    case 404 | 400 | 422:
+                        throw new Error("No Email Provided");
+                        break;
+                
+                    default:
+                        throw new Error("Problem with server. Please try again later");
+                        break;
+                }
 
             // check response
             const data = (await response.json()) as boolean;
@@ -216,7 +224,23 @@ export const Signup = async ({ section }: SignupOutput, formData: FormData | und
                 });
 
                 if(!response.ok) {
-                    throw new Error("Response not ok");
+                    switch (response.status) {
+                        case 409:
+                            throw new Error("Emailed Already registered");
+                            break;
+
+                        case 422:
+                            throw new Error("Missing account Data. Please check information");
+                            break;
+
+                        case 400:
+                            throw new Error("Invalid account Data. Please check information");
+                            break;
+                    
+                        default:
+                            throw new Error("Problem with Server. Please try later");
+                            break;
+                    }
                 }
 
             } catch (error) {
