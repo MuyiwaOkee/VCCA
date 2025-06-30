@@ -2,11 +2,17 @@
 import { CreateSession, DeleteSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import * as z from 'zod'
-import { hash } from 'argon2';
 
-type UserType = {
+type LoginFormType = {
     email: string,
     password: string
+}
+
+type UserType = {
+    id: string,
+    email: string,
+    role: string,
+    sector?: string
 }
 
 type SignupType = {
@@ -14,11 +20,6 @@ type SignupType = {
     password?: string,
     roleCombobox?: string,
     sectorCombobox?: string
-}
-
-const testUser:UserType = {
-    email: "youshould@subscribe.com",
-    password: '12345678'
 }
 
 const loginSchema = z.object({
@@ -33,7 +34,7 @@ const userRoleSchema = z.enum(['Business', 'Analyst (Internal)']);
 const sectorSchema = z.enum(['Banking', 'Real estate']);
 
 export const Login = async (_prevState: any, formData: FormData) => {
-    const formDataObject = Object.fromEntries(formData) as UserType; //this transforms the form data into an object, with the names of the input as the keys, and the values as the values. then I have set the type
+    const formDataObject = Object.fromEntries(formData) as LoginFormType; //this transforms the form data into an object, with the names of the input as the keys, and the values as the values. then I have set the type
 
     // checks the user input against the schemea
    const result = loginSchema.safeParse(formDataObject);
@@ -44,17 +45,36 @@ export const Login = async (_prevState: any, formData: FormData) => {
         };
     }
 
-    // sends the user input against the actual user information
-    if(formDataObject.email !== testUser.email || formDataObject.password !== testUser.password) {
+    // verify user credentials
+    try {
+        // send the auth/verify endpoint
+        const response = await fetch(`http://localhost:8000/auth/verify`, {
+            method: 'POST',
+            headers: { 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify(formDataObject)
+        });
+
+        if(!response.ok) 
+            throw new Error("Problem connecting to server");
+
+        // check response
+        const data = (await response.json()) as UserType | false;
+
+        if(data == false)
+            throw new Error("Username or password incorrect");
+        
+        await CreateSession(data.id);
+    } catch (error) {
         return {
+            section: 'EmailPassword',
             errors: {
-                email: ["Email or password is wrong"],
+                email: [error],
                 password: undefined
             }
-        }
+        };
     }
-
-    await CreateSession(formDataObject.email);
 
     // create session and redirect
     redirect('/dashboard');
@@ -101,12 +121,42 @@ export const Signup = async ({ section }: SignupOutput, formData: FormData | und
                 };
             }
 
+            // check that the email doesn't already exist in the database
+            try {
+            const response = await fetch(`http://127.0.0.1:8000/auth/email/${result.data.email}`, {
+                method: 'GET',
+                headers: { 
+                    "Content-Type": "application/json" 
+                }
+            });
+
+            if(!response.ok) 
+                throw new Error("Problem connecting to server");
+
+            // check response
+            const data = (await response.json()) as boolean;
+
+            console.log('The emai is in use? - ', data);
+
+            if(data == true)
+                throw new Error("Email is used by another user");
+            
+            // Go to next stage of the signup process
             return {
                 section: 'UserRole',
                 errors: {
                     email: undefined,
                     password: undefined
                 }
+            }
+
+            } catch (error) {
+                return {
+                    section: 'EmailPassword',
+                    errors: {
+                        email: [error as string]
+                    }
+                };
             }
 
         case 'UserRole':
@@ -139,17 +189,41 @@ export const Signup = async ({ section }: SignupOutput, formData: FormData | und
             }
 
             // Create the user account in the database and create session
-            const { email, password: passwordNotHashed, roleCombobox: role, sectorCombobox:sector } = formDataObject;
+            const { email, password, roleCombobox: role, sectorCombobox:sector } = formDataObject;
 
             // this will be sent via post request to create a new user. it should return the user id, which will then be used to create a session before directing to the dashboard
             const newUser = {
                 email,
-                password: await hash(passwordNotHashed!), //hashed and salted password for added security
+                password,
                 role,
                 sector
             };
 
-            redirect('/dashboard');
+            // try and add to database
+            try {
+                const response = await fetch(`http://localhost:8000/user/`, {
+                    method: 'POST',
+                    headers: { 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify(newUser)
+                });
+
+                if(!response.ok) {
+                    throw new Error("Response not ok");
+                }
+
+            } catch (error) {
+                return {
+                    section: 'EmailPassword',
+                    errors: {
+                        email: [error as string],
+                        password: undefined
+                    }
+                };
+            }
+
+            redirect('/dashboard'); 
     
         default:
              return {

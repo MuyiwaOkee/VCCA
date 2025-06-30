@@ -1,7 +1,7 @@
 "use client"
 import { VisaErrorTiny, VisaPasswordHideTiny, VisaPasswordShowTiny } from '@visa/nova-icons-react';
 import { Button, Input, InputContainer, InputMessage, Label, Utility } from '@visa/nova-react';
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 
 type Props = {
     id: string,
@@ -14,12 +14,17 @@ type Props = {
 
 export const MaskButtonInput = ({ id, label, isRequired, description, errorText, autocomplete }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [value, setValue] = useState('');
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setValue(e.target.value)
+    };
 
   return (
     <Utility vFlex vFlexCol vGap={4} className='w-full'>
       <Label htmlFor={id}>{label} {isRequired ? "(required)" : ""}</Label>
       <InputContainer>
-        <Input aria-required="true" id={id}  name={id} type={showPassword ? 'text' : 'password'} autoComplete={autocomplete}/>
+        <Input aria-required="true" id={id}  name={id} type={showPassword ? 'text' : 'password'} autoComplete={autocomplete} value={value} onChange={handleInputChange}/>
         <Button
           aria-label={showPassword ? 'hide text' : 'show text'}
           aria-invalid={errorText ? 'true' : 'false'}
