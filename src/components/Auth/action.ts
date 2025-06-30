@@ -53,11 +53,15 @@ export const Login = async (_prevState: any, formData: FormData) => {
             headers: { 
                 "Content-Type": "application/json" 
             },
-            body: JSON.stringify(formDataObject)
+            body: JSON.stringify(result.data)
         });
 
         if(!response.ok) 
            switch (response.status) {
+            case 400:
+                    throw new Error("Missing account details");
+                    break;
+
             case 401:
                  throw new Error("Email or password is incorrect");
                 break;
