@@ -57,13 +57,19 @@ export const Login = async (_prevState: any, formData: FormData) => {
         });
 
         if(!response.ok) 
-            throw new Error("Problem connecting to server");
+           switch (response.status) {
+            case 401:
+                 throw new Error("Email or password is incorrect");
+                break;
+           
+            default:
+                throw new Error("Problem with Server. Please try later");
+                break;
+           }
+        
 
         // check response
-        const data = (await response.json()) as UserType | false;
-
-        if(data == false)
-            throw new Error("Username or password incorrect");
+        const data = (await response.json()) as UserType
         
         await CreateSession(data.id);
     } catch (error) {
