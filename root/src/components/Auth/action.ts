@@ -154,8 +154,6 @@ export const Signup = async ({ section }: SignupOutput, formData: FormData | und
             // check response
             const data = (await response.json()) as boolean;
 
-            console.log('The emai is in use? - ', data);
-
             if(data == true)
                 throw new Error("Email is used by another user");
             
