@@ -29,22 +29,22 @@ def get_all_sources(db: Session):
 
         # Format as list of dicts
         sources = [
-            {
-                'id': source.id,
-                'category_name': category_name,
-                'sector_name': sector_name,
-                'country_iso_code': source.country_iso_code,
-                'value_is_percent': source.value_is_percent,
-                'currency_iso_code': source.currency_iso_code,
-                'description': source.description,
-                'period': period_name,
-                'unit': source.unit,
-                'stroke_hex': stroke_hex,
-                'fill_hex': fill_hex
-            }
+            analytic_source_reponse(
+                id=source.id,
+                category_name=category_name,
+                sector_name=sector_name,
+                country_iso_code=source.country_iso_code,
+                value_is_percent=source.value_is_percent,
+                currency_iso_code=source.currency_iso_code,
+                description=source.description,
+                period=period_name,
+                unit=source.unit,
+                stroke_hex=stroke_hex,
+                fill_hex=fill_hex
+            )
             for source, category_name, sector_name, fill_hex, stroke_hex, period_name in results
         ]
 
         return sources
     except Exception as e:
-        raise e
+        raise print(e)

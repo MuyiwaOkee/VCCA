@@ -1,10 +1,11 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 # response classes for get all sources endpoint
 class analytic_source_reponse(BaseModel):
-    id: str
+    id: UUID
     category_name: str
     sector_name: Optional[str]
     country_iso_code: str
@@ -16,17 +17,14 @@ class analytic_source_reponse(BaseModel):
     stroke_hex: str
     fill_hex: str
 
-# class sources_reponse(BaseModel):
-#     sources: list[analytic_source_reponse]
+# reponse classes for get data source by id
+class analytic_datapoint_reponse(BaseModel):
+    value: float
+    creation_date_utc: datetime
+    is_forecast: bool
 
-# # reponse classes for get data source by id
-# class analytic_datapoint_reponse(BaseModel):
-#     value = float
-#     creation_date_utc = datetime
-#     is_forecast = bool
+class datapoint_from_source_reponse(BaseModel):
+    datapoints: list[analytic_datapoint_reponse]
 
-# class datapoint_from_source_reponse(BaseModel):
-#     datapoints: list[analytic_datapoint_reponse]
-
-# class datapoint_from_sources_reponse(BaseModel):
-#     data: list[datapoint_from_source_reponse]
+class datapoint_from_sources_reponse(BaseModel):
+    data: list[datapoint_from_source_reponse]
