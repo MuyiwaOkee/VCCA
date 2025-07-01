@@ -47,4 +47,4 @@ def get_all_sources(db: Session):
 
         return sources
     except Exception as e:
-        raise print(e)
+        raise e
