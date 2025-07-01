@@ -10,7 +10,6 @@ class analytic_source_reponse(BaseModel):
     country_iso_code: str
     value_is_percent: bool
     currency_iso_code: str
-    palette_id: str
     description: Optional[str]
     period: str
     unit: str
