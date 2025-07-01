@@ -42,22 +42,9 @@ def get_all_sources(db: Session):
                 'stroke_hex': stroke_hex,
                 'fill_hex': fill_hex
             }
-            # analytic_source_reponse(
-            #     id=source.id,
-            #     category_name=category_name,
-            #     sector_name=sector_name,
-            #     country_iso_code=source.country_iso_code,
-            #     value_is_percent=source.value_is_percent,
-            #     currency_iso_code=source.currency_iso_code,
-            #     palette_id=source.palette_id,
-            #     description=source.description,
-            #     period=source.period_id,
-            #     unit=source.unit,
-            #     stroke_hex=stroke_hex,
-            #     fill_hex=fill_hex
-            # )
             for source, category_name, sector_name, fill_hex, stroke_hex, period_name in results
         ]
+
         return sources
     except Exception as e:
         raise e
