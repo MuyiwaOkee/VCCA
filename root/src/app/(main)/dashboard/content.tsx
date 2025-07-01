@@ -22,8 +22,10 @@ type DatapointsType = {
 
 const DashbaordPage = () => {
   // Search query params
+  const maxYearValue = new Date().getFullYear(); //Gets the current year
+  const minYearValue = 2020 //the minimum year the app will have data points for
   const [isMonthlyTimescale, toggleMonthlyTimescale] = useQueryState('monthlytimescale', parseAsBoolean.withDefault(true));
-  const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(new Date().getFullYear()));
+  const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(maxYearValue));
   const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
 
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
@@ -300,9 +302,9 @@ const DashbaordPage = () => {
             </div>
             {/* Year selector */}
             <div className="h-10 flex justify-center items-center gap-1">
-              <Button colorScheme='tertiary' onClick={() => setCurrentYear(prev => prev - 1)}><VisaChevronLeftTiny/></Button>
+              {currentYear > minYearValue && <Button colorScheme='tertiary' onClick={() => setCurrentYear(prev => prev - 1)}><VisaChevronLeftTiny/></Button>}
               <p className="justify-center text-Color-Text-text text-sm font-normal font-['Noto_Sans'] leading-none">{currentYear}</p>
-                <Button colorScheme='tertiary' onClick={() => setCurrentYear(prev => prev + 1)}><VisaChevronRightTiny /></Button>
+                {currentYear < maxYearValue && <Button colorScheme='tertiary' onClick={() => setCurrentYear(prev => prev + 1)}><VisaChevronRightTiny /></Button>}
             </div>
         </div>
     </section>
