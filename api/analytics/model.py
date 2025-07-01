@@ -1,30 +1,33 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 # response classes for get all sources endpoint
 class analytic_source_reponse(BaseModel):
-    id = str,
-    category = str,
-    sector = str | None,
-    country_iso_code = str,
-    value_is_percent = bool,
-    currency_iso_code = str,
-    palette_id = str,
-    description = str | None,
-    period = str,
-    unit = str,
+    id: str
+    category_name: str
+    sector_name: Optional[str]
+    country_iso_code: str
+    value_is_percent: bool
+    currency_iso_code: str
+    palette_id: str
+    description: Optional[str]
+    period: str
+    unit: str
+    stroke_hex: str
+    fill_hex: str
 
-class sources_reponse(BaseModel):
-    sources: list[analytic_source_reponse]
+# class sources_reponse(BaseModel):
+#     sources: list[analytic_source_reponse]
 
-# reponse classes for get data source by id
-class analytic_datapoint_reponse(BaseModel):
-    value = float
-    creation_date_utc = datetime
-    is_forecast = bool
+# # reponse classes for get data source by id
+# class analytic_datapoint_reponse(BaseModel):
+#     value = float
+#     creation_date_utc = datetime
+#     is_forecast = bool
 
-class datapoint_from_source_reponse(BaseModel):
-    datapoints: list[analytic_datapoint_reponse]
+# class datapoint_from_source_reponse(BaseModel):
+#     datapoints: list[analytic_datapoint_reponse]
 
-class datapoint_from_sources_reponse(BaseModel):
-    data: list[datapoint_from_source_reponse]
+# class datapoint_from_sources_reponse(BaseModel):
+#     data: list[datapoint_from_source_reponse]
