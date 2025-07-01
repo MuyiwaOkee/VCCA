@@ -9,7 +9,7 @@ class AnalyticsSector(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(50), unique=True, nullable=False)
-    displayOrder = Column(Integer, nullable=False)  # Note: No UNIQUE constraint here
+    display_order = Column(Integer, nullable=False)  # Note: No UNIQUE constraint here
 
     def __repr__(self):
         return f"<AnalyticsSector(id={self.id}, name='{self.name}', order={self.displayOrder})>"

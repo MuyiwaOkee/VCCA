@@ -9,7 +9,7 @@ class AnalyticsCategory(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(50), unique=True, nullable=False)
-    displayOrder = Column(Integer, unique=True, nullable=False)
+    display_order = Column(Integer, unique=True, nullable=False)
 
     def __repr__(self):
         return f"<AnalyticsCategory(id={self.id}, name='{self.name}', order={self.displayOrder})>"
