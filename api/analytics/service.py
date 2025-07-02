@@ -70,8 +70,6 @@ def get_all_sources(db: Session):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
-    finally:
-        db.close()
 
 def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: str):
     # quick argument checking before querying
