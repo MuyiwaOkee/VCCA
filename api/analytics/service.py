@@ -236,8 +236,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             
             response = []
             for id, is_value_percent, fill_hex, stroke_hex in sources:
-                print(f'\\nTHE ID IN QUESTION IS - {id}\nis percent - {is_value_percent}\nfill-{fill_hex}\n stroke-{stroke_hex}')
-
+                
                 data = [
                     analytic_datapoint_reponse(
                         value=datapoint.value,
@@ -258,17 +257,6 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
 
             return response
         else: # period is quarterly
-            # First get all sources with their value_is_percent flag
-            # sources = db.query(
-            #     AnalyticsSource.id,
-            #     AnalyticsSource.value_is_percent
-            # ).filter(
-            #     AnalyticsSource.id.in_(source_ids)
-            # ).all()
-            
-            # if not sources:
-            #     return {}
-            
             # Create a mapping of source_id to value_is_percent
             source_config = {s.id: s.value_is_percent for s in sources}
             
@@ -329,8 +317,20 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
                             creation_date_utc=quarter_start,
                             is_forecast=False
                         ))
+            
+            response = []
+            for id, is_value_percent, fill_hex, stroke_hex in sources:
 
-            return dict(results)
+                datapoints_response_dict = datapoints_response(
+                    stroke_hex=stroke_hex,
+                    fill_hex=fill_hex,
+                    is_value_percent=is_value_percent,
+                    data=results[str(id)]
+                )
+
+                response.append(datapoints_response_dict)
+
+            return response
         
     except DatabaseError as e:
         raise HTTPException(
