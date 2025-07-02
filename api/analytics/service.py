@@ -1,7 +1,7 @@
 from collections import defaultdict
 from fastapi import HTTPException, status
 from sqlalchemy import and_, extract, func
-from analytics.model import analytic_source_reponse, analytic_datapoint_reponse
+from analytics.model import analytic_source_reponse, analytic_datapoint_reponse, datapoints_response
 from entities.analytics.analytics_sources import AnalyticsSource
 from entities.analytics.analytics_categories import AnalyticsCategory
 from entities.analytics.analytics_sector import AnalyticsSector
@@ -83,6 +83,20 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
     if year > datetime.now().year:
         return []
     
+    query_result = db.query(
+                AnalyticsSource.value_is_percent,
+                AnalyticsPalette.fill_hex.label('fill_hex'),
+                AnalyticsPalette.stroke_hex.label('stroke_hex'),
+            ).filter(AnalyticsSource.id == source_id).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id).first()
+    
+    is_value_percent, fill_hex, stroke_hex = query_result
+
+    if not query_result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Analytics source not found'
+        )        
+    
     try:
         if period == 'monthly':
             datapoints = db.query(AnalyticsDatapoint).filter(
@@ -90,7 +104,7 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
             extract('year', AnalyticsDatapoint.creation_date_utc) == year
             ).order_by(AnalyticsDatapoint.creation_date_utc).all()
             
-            response = [
+            data = [
                 analytic_datapoint_reponse(
                     value=datapoint.value,
                     creation_date_utc=datapoint.creation_date_utc,
@@ -99,19 +113,15 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 for datapoint in datapoints
             ]
 
+            response = datapoints_response(
+                stroke_hex=stroke_hex,
+                fill_hex=fill_hex,
+                is_value_percent=is_value_percent,
+                data=data
+            )
+
             return response
         else: # period is quarterly
-             # First get the analytics_source record
-            source = db.query(AnalyticsSource).filter(
-                AnalyticsSource.id == source_id
-            ).first()
-            
-            if not source:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail='Analytics source not found'
-                )
-            
             # Determine quarter start dates
             quarter_starts = [
                 date(year, 1, 1),   # Q1
@@ -120,13 +130,13 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 date(year, 10, 1)   # Q4
             ]
             
-            response = []
+            data = []
             
             for quarter_start in quarter_starts:
                 quarter_end_month = quarter_start.month + 2
                 quarter_end = date(year, quarter_end_month, 1)
                 
-                if source.value_is_percent:
+                if is_value_percent:
                     # Get record with max value in quarter
                     datapoint = db.query(AnalyticsDatapoint).filter(
                         AnalyticsDatapoint.source_id == source_id,
@@ -135,7 +145,7 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                     ).order_by(AnalyticsDatapoint.value.desc()).first()
                     
                     if datapoint:
-                        response.append(analytic_datapoint_reponse(
+                        data.append(analytic_datapoint_reponse(
                             value=float(datapoint.value),
                             creation_date_utc=quarter_start,
                             is_forecast=datapoint.is_forecast
@@ -151,11 +161,18 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                     ).first()
                     
                     if sum_result and sum_result.total is not None:
-                        response.append(analytic_datapoint_reponse(
+                        data.append(analytic_datapoint_reponse(
                             value=float(sum_result.total),
                             creation_date_utc=quarter_start,
                             is_forecast=False  # Summed values don't preserve forecast status
                         ))
+
+            response = datapoints_response(
+                stroke_hex=stroke_hex,
+                fill_hex=fill_hex,
+                is_value_percent=is_value_percent,
+                data=data
+            )
             
             return response
         

@@ -22,3 +22,9 @@ class analytic_datapoint_reponse(BaseModel):
     value: float
     creation_date_utc: datetime
     is_forecast: bool
+
+class datapoints_response(BaseModel):
+    stroke_hex: str
+    fill_hex: str
+    is_value_percent: bool
+    data: list[analytic_datapoint_reponse]
