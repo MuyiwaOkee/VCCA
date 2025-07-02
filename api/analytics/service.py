@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import extract
+from sqlalchemy import extract, func
 from analytics.model import analytic_source_reponse, analytic_datapoint_reponse
 from entities.analytics.analytics_sources import AnalyticsSource
 from entities.analytics.analytics_categories import AnalyticsCategory
@@ -10,7 +10,7 @@ from entities.analytics.analytics_datapoint import AnalyticsDatapoint
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DatabaseError
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, date
 
 def get_all_sources(db: Session):
     try:
@@ -85,24 +85,91 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
         return []
     
     try:
-        datapoints = db.query(AnalyticsDatapoint).filter(
+        if period == 'monthly':
+            datapoints = db.query(AnalyticsDatapoint).filter(
             AnalyticsDatapoint.source_id == source_id, 
             extract('year', AnalyticsDatapoint.creation_date_utc) == year
             ).order_by(AnalyticsDatapoint.creation_date_utc).all()
-        
-        response = [
-            analytic_datapoint_reponse(
-                value=datapoint.value,
-                creation_date_utc=datapoint.creation_date_utc,
-                is_forecast=datapoint.is_forecast
-            )
-            for datapoint in datapoints
-        ]
-
-        return response
             
+            response = [
+                analytic_datapoint_reponse(
+                    value=datapoint.value,
+                    creation_date_utc=datapoint.creation_date_utc,
+                    is_forecast=datapoint.is_forecast
+                )
+                for datapoint in datapoints
+            ]
+
+            return response
+        else: # period is quarterly
+             # First get the analytics_source record
+            source = db.query(AnalyticsSource).filter(
+                AnalyticsSource.id == source_id
+            ).first()
+            
+            if not source:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Analytics source not found'
+                )
+            
+            # Determine quarter start dates
+            quarter_starts = [
+                date(year, 1, 1),   # Q1
+                date(year, 4, 1),    # Q2
+                date(year, 7, 1),    # Q3
+                date(year, 10, 1)   # Q4
+            ]
+            
+            response = []
+            
+            for quarter_start in quarter_starts:
+                quarter_end_month = quarter_start.month + 2
+                quarter_end = date(year, quarter_end_month, 1)
+                
+                if source.value_is_percent:
+                    # Get record with max value in quarter
+                    datapoint = db.query(AnalyticsDatapoint).filter(
+                        AnalyticsDatapoint.source_id == source_id,
+                        AnalyticsDatapoint.creation_date_utc >= quarter_start,
+                        AnalyticsDatapoint.creation_date_utc <= quarter_end
+                    ).order_by(AnalyticsDatapoint.value.desc()).first()
+                    
+                    if datapoint:
+                        response.append(analytic_datapoint_reponse(
+                            value=float(datapoint.value),
+                            creation_date_utc=quarter_start,
+                            is_forecast=datapoint.is_forecast
+                        ))
+                else:
+                    # Sum values in quarter
+                    sum_result = db.query(
+                        func.sum(AnalyticsDatapoint.value).label('total')
+                    ).filter(
+                        AnalyticsDatapoint.source_id == source_id,
+                        AnalyticsDatapoint.creation_date_utc >= quarter_start,
+                        AnalyticsDatapoint.creation_date_utc <= quarter_end
+                    ).first()
+                    
+                    if sum_result and sum_result.total is not None:
+                        response.append(analytic_datapoint_reponse(
+                            value=float(sum_result.total),
+                            creation_date_utc=quarter_start,
+                            is_forecast=False  # Summed values don't preserve forecast status
+                        ))
+            
+            return response
+        
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service unavailable"
+        )
+     
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e
         )
+    finally:
+        db.close()
