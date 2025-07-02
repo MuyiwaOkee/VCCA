@@ -1,12 +1,16 @@
 from fastapi import HTTPException, status
+from sqlalchemy import extract
 from analytics.model import analytic_source_reponse
 from entities.analytics.analytics_sources import AnalyticsSource
 from entities.analytics.analytics_categories import AnalyticsCategory
 from entities.analytics.analytics_sector import AnalyticsSector
 from entities.analytics.analytics_palette import AnalyticsPalette
 from entities.analytics.analytics_periods import AnalyticsPeriod
+from entities.analytics.analytics_datapoint import AnalyticsDatapoint
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DatabaseError
+from uuid import UUID
+from datetime import datetime
 
 def get_all_sources(db: Session):
     try:
@@ -67,3 +71,26 @@ def get_all_sources(db: Session):
         )
     finally:
         db.close()
+
+def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: str):
+    # quick argument checking before querying
+    if period != 'monthly' and period != 'quarterly':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid period'
+        )
+    
+    # if the user is querying for a future year, return an empty list
+    if year > datetime.now().year:
+        return []
+    
+    try:
+        datapoints = db.query(AnalyticsDatapoint).filter(AnalyticsDatapoint.source_id == source_id,  extract('year', AnalyticsDatapoint.creation_date_utc) == year).all()
+
+        return datapoints
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e
+        )
