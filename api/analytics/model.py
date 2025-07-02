@@ -22,9 +22,3 @@ class analytic_datapoint_reponse(BaseModel):
     value: float
     creation_date_utc: datetime
     is_forecast: bool
-
-class datapoint_from_source_reponse(BaseModel):
-    datapoints: list[analytic_datapoint_reponse]
-
-class datapoint_from_sources_reponse(BaseModel):
-    data: list[datapoint_from_source_reponse]

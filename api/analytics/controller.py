@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from database.core import DbSession
 from starlette import status
 from analytics.service import get_all_sources, get_datapoints_from_source, get_datapoints_from_sources
-from sqlalchemy.exc import DatabaseError
 from uuid import UUID
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from datetime import datetime
 
 router = APIRouter(
@@ -12,9 +11,7 @@ router = APIRouter(
     tags=['analytics']
 )
 
-def parse_uuid_list(
-    source_ids: str
-) -> List[UUID]:
+def parse_uuid_list(source_ids: str) -> List[UUID]:
     result = []
     for id in source_ids.split(";"):
         id = id.strip()
@@ -25,6 +22,9 @@ def parse_uuid_list(
         except ValueError:
             raise ValueError(f"'{id}' is not a valid UUID")
     return result
+
+# create dependency
+Str_To_List_UUID = Annotated[list[UUID], Depends(parse_uuid_list)]
 
 @router.get('/sources/all', status_code=status.HTTP_200_OK)
 async def get_all_sources_endpoint(db: DbSession):
@@ -42,7 +42,7 @@ async def get_all_sources_endpoint(db: DbSession):
         )
     
 @router.get('/sources/data/', status_code=status.HTTP_200_OK)
-async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: List[UUID] = Depends(parse_uuid_list), year: Optional[int] = datetime.now().year, period: Optional[str] = 'monthly'):
+async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: Str_To_List_UUID, year: Optional[int] = datetime.now().year, period: Optional[str] = 'monthly'):
     try:
         return get_datapoints_from_sources(db, source_ids, year, period)
     except HTTPException as e:

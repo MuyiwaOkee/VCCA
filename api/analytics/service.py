@@ -172,8 +172,6 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e
         )
-    finally:
-        db.close()
 
 def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, period: str):
     # quick argument checking before querying
@@ -218,68 +216,84 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             
             return dict(grouped_results)
         else: # period is quarterly
-             # First get the analytics_source record
-            # source = db.query(AnalyticsSource).filter(
-            #     AnalyticsSource.id == source_id
-            # ).first()
+            # First get all sources with their value_is_percent flag
+            sources = db.query(
+                AnalyticsSource.id,
+                AnalyticsSource.value_is_percent
+            ).filter(
+                AnalyticsSource.id.in_(source_ids)
+            ).all()
             
-            # if not source:
-            #     raise HTTPException(
-            #         status_code=status.HTTP_404_NOT_FOUND,
-            #         detail='Analytics source not found'
-            #     )
+            if not sources:
+                return {}
             
-            # # Determine quarter start dates
-            # quarter_starts = [
-            #     date(year, 1, 1),   # Q1
-            #     date(year, 4, 1),    # Q2
-            #     date(year, 7, 1),    # Q3
-            #     date(year, 10, 1)   # Q4
-            # ]
+            # Create a mapping of source_id to value_is_percent
+            source_config = {s.id: s.value_is_percent for s in sources}
             
-            # response = []
+            # Define quarters
+            quarters = [
+                (1, date(year, 1, 1), date(year, 3, 31)),
+                (2, date(year, 4, 1), date(year, 6, 30)),
+                (3, date(year, 7, 1), date(year, 9, 30)),
+                (4, date(year, 10, 1), date(year, 12, 31))
+            ]
             
-            # for quarter_start in quarter_starts:
-            #     quarter_end_month = quarter_start.month + 2
-            #     quarter_end = date(year, quarter_end_month, 1)
-                
-            #     if source.value_is_percent:
-            #         # Get record with max value in quarter
-            #         datapoint = db.query(AnalyticsDatapoint).filter(
-            #             AnalyticsDatapoint.source_id == source_id,
-            #             AnalyticsDatapoint.creation_date_utc >= quarter_start,
-            #             AnalyticsDatapoint.creation_date_utc <= quarter_end
-            #         ).order_by(AnalyticsDatapoint.value.desc()).first()
+            results = defaultdict(list)
+
+            for _, quarter_start, quarter_end in quarters:
+                # For percent sources (get max value per quarter)
+                percent_sources = [id for id, is_percent in source_config.items() if is_percent]
+                if percent_sources:
+                    max_values = db.query(
+                        AnalyticsDatapoint.source_id,
+                        func.max(AnalyticsDatapoint.value).label('max_value'),
+                        func.max(AnalyticsDatapoint.creation_date_utc).label('latest_date')
+                    ).filter(
+                        and_(
+                            AnalyticsDatapoint.source_id.in_(percent_sources),
+                            AnalyticsDatapoint.creation_date_utc >= quarter_start,
+                            AnalyticsDatapoint.creation_date_utc <= quarter_end
+                        )
+                    ).group_by(
+                        AnalyticsDatapoint.source_id
+                    ).all()
                     
-            #         if datapoint:
-            #             response.append(analytic_datapoint_reponse(
-            #                 value=float(datapoint.value),
-            #                 creation_date_utc=quarter_start,
-            #                 is_forecast=datapoint.is_forecast
-            #             ))
-            #     else:
-            #         # Sum values in quarter
-            #         sum_result = db.query(
-            #             func.sum(AnalyticsDatapoint.value).label('total')
-            #         ).filter(
-            #             AnalyticsDatapoint.source_id == source_id,
-            #             AnalyticsDatapoint.creation_date_utc >= quarter_start,
-            #             AnalyticsDatapoint.creation_date_utc <= quarter_end
-            #         ).first()
+                    for source_id, max_value, _ in max_values:
+                        results[str(source_id)].append(analytic_datapoint_reponse(
+                            value=float(max_value),
+                            creation_date_utc=quarter_start,
+                            is_forecast=False  # Would need additional logic to determine
+                        ))
+
+                # For non-percent sources (get sum per quarter)
+                non_percent_sources = [id for id, is_percent in source_config.items() if not is_percent]
+                if non_percent_sources:
+                    sums = db.query(
+                        AnalyticsDatapoint.source_id,
+                        func.sum(AnalyticsDatapoint.value).label('total_value')
+                    ).filter(
+                        and_(
+                            AnalyticsDatapoint.source_id.in_(non_percent_sources),
+                            AnalyticsDatapoint.creation_date_utc >= quarter_start,
+                            AnalyticsDatapoint.creation_date_utc <= quarter_end
+                        )
+                    ).group_by(
+                        AnalyticsDatapoint.source_id
+                    ).all()
                     
-            #         if sum_result and sum_result.total is not None:
-            #             response.append(analytic_datapoint_reponse(
-            #                 value=float(sum_result.total),
-            #                 creation_date_utc=quarter_start,
-            #                 is_forecast=False  # Summed values don't preserve forecast status
-            #             ))
-            
-            return "response"
+                    for source_id, total_value in sums:
+                        results[str(source_id)].append(analytic_datapoint_reponse(
+                            value=float(total_value),
+                            creation_date_utc=quarter_start,
+                            is_forecast=False
+                        ))
+
+            return dict(results)
         
     except DatabaseError as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=e
+            detail="database unavailable"
         )
      
     except Exception as e:
