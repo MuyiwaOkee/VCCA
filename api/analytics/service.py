@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy import extract
-from analytics.model import analytic_source_reponse
+from analytics.model import analytic_source_reponse, analytic_datapoint_reponse
 from entities.analytics.analytics_sources import AnalyticsSource
 from entities.analytics.analytics_categories import AnalyticsCategory
 from entities.analytics.analytics_sector import AnalyticsSector
@@ -85,9 +85,21 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
         return []
     
     try:
-        datapoints = db.query(AnalyticsDatapoint).filter(AnalyticsDatapoint.source_id == source_id,  extract('year', AnalyticsDatapoint.creation_date_utc) == year).all()
+        datapoints = db.query(AnalyticsDatapoint).filter(
+            AnalyticsDatapoint.source_id == source_id, 
+            extract('year', AnalyticsDatapoint.creation_date_utc) == year
+            ).order_by(AnalyticsDatapoint.creation_date_utc).all()
+        
+        response = [
+            analytic_datapoint_reponse(
+                value=datapoint.value,
+                creation_date_utc=datapoint.creation_date_utc,
+                is_forecast=datapoint.is_forecast
+            )
+            for datapoint in datapoints
+        ]
 
-        return datapoints
+        return response
             
     except Exception as e:
         raise HTTPException(
