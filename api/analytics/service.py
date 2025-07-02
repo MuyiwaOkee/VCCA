@@ -206,6 +206,22 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
     if year > datetime.now().year:
         return []
     
+    sources = db.query(
+        AnalyticsSource.id,
+        AnalyticsSource.value_is_percent,
+        AnalyticsPalette.fill_hex.label('fill_hex'),
+        AnalyticsPalette.stroke_hex.label('stroke_hex'),
+    ).filter(
+        AnalyticsSource.id.in_(source_ids)
+    ).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id
+    ).all()
+            
+    if not sources:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='No sources found'
+        )
+    
     try:
         if period == 'monthly':
             datapoints = db.query(AnalyticsDatapoint).filter(
@@ -218,29 +234,40 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
                 AnalyticsDatapoint.creation_date_utc
             ).all()
             
-            # Group results by source_id
-            grouped_results = defaultdict(list)
-            for datapoint in datapoints:
-                grouped_results[datapoint.source_id].append(
+            response = []
+            for id, is_value_percent, fill_hex, stroke_hex in sources:
+                print(f'\\nTHE ID IN QUESTION IS - {id}\nis percent - {is_value_percent}\nfill-{fill_hex}\n stroke-{stroke_hex}')
+
+                data = [
                     analytic_datapoint_reponse(
                         value=datapoint.value,
                         creation_date_utc=datapoint.creation_date_utc,
                         is_forecast=datapoint.is_forecast
                     )
+                    for datapoint in datapoints if datapoint.source_id == id
+                ]
+
+                datapoints_response_dict = datapoints_response(
+                    stroke_hex=stroke_hex,
+                    fill_hex=fill_hex,
+                    is_value_percent=is_value_percent,
+                    data=data
                 )
-            
-            return dict(grouped_results)
+
+                response.append(datapoints_response_dict)
+
+            return response
         else: # period is quarterly
             # First get all sources with their value_is_percent flag
-            sources = db.query(
-                AnalyticsSource.id,
-                AnalyticsSource.value_is_percent
-            ).filter(
-                AnalyticsSource.id.in_(source_ids)
-            ).all()
+            # sources = db.query(
+            #     AnalyticsSource.id,
+            #     AnalyticsSource.value_is_percent
+            # ).filter(
+            #     AnalyticsSource.id.in_(source_ids)
+            # ).all()
             
-            if not sources:
-                return {}
+            # if not sources:
+            #     return {}
             
             # Create a mapping of source_id to value_is_percent
             source_config = {s.id: s.value_is_percent for s in sources}
