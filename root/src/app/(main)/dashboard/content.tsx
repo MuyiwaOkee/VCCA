@@ -7,6 +7,7 @@ import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVe
 import * as d3 from 'd3';
 import cn from '@/utils/cn';
 import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { log10, min, max, floor } from 'mathjs';
 
 type GraphDataType = {
   value: number;
@@ -59,11 +60,54 @@ const DashbaordPage = () => {
     
     return months.map(month => {
       // Random interest rate between 1% and 10%
-      const value = Math.random() * 9 + 1;
+      const value = (Math.random() * 9 + 1) * 1000;
       const date = new Date(currentYear, month, 1);
       return { value, date };
     });
   };
+
+  // gets divisor and suffix to reduce visual scale of datapoints on the graph. 
+  const GetSuffix = (minValue: number) => {
+    const exponent = floor(log10(minValue))
+
+    const divisor = 10 ** exponent;
+    
+    let suffix = ''
+    switch (divisor) {
+      case 10:
+        suffix = ''
+        break;
+
+      case 100:
+        suffix = '(tens)'
+        break;
+
+      case 100:
+        suffix = '(hundreds)'
+        break;
+
+      case 1000:
+        suffix = '(thousands)'
+        break;
+
+      case 10000:
+        suffix = '(ten-thousands)'
+        break;
+
+      case 100000:
+        suffix = '(hundred-thousands)'
+        break;
+
+      case 1000000:
+        suffix = '(millions)'
+        break;
+    
+      default:
+        break;
+    }
+
+    return { divisor, suffix }
+  }
   
   // Get size of div
   useEffect(() => {
@@ -140,6 +184,11 @@ const DashbaordPage = () => {
     const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
     const allDates = datapoints.flatMap(s => s.data.map(d => d.date));
 
+    // get suffix and divisor
+    const { divisor, suffix } = GetSuffix(min(allValues));
+
+    console.log(`The divisor is ${divisor}, suffix -${suffix}`);
+
     // X scale
     const x = d3.scaleTime()
       .domain(d3.extent(allDates) as [Date, Date])
@@ -147,7 +196,7 @@ const DashbaordPage = () => {
 
     // Y scale
     const y = d3.scaleLinear()
-      .domain([d3.min(allValues)! * 0.95, d3.max(allValues)! * 1.05])
+      .domain([d3.min(allValues)! * 0.95 / divisor, d3.max(allValues)! * 1.05 / divisor])
       .range([height, 0]);
 
     // Add X axis
@@ -169,13 +218,21 @@ const DashbaordPage = () => {
       );
 
     // Add Y axis
-    svg.append('g')
+      svg.append('g')
       .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${datapoints[0].valueType == 'Price' ? '£' : ''}${d}${datapoints[0].valueType == 'Points' ? '%' : ''}`))
       .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
       .call(g => g.select('.domain').remove()) // Remove axis line
       .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
       .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
 
+        // Add Y axis label in top left corner
+        svg.append('text')
+          .attr('x', 0) // Align with left edge of the chart area
+          .attr('y', -5) // Position above the top of the chart area
+          .attr('text-anchor', 'start') // Left-align the text
+          .style('font-size', '12px')
+          .style('fill', '#666')
+          .text(`spending in £, ${suffix}`); //Once api request is added, this will become CATAGORY-SECTOR-NAME in UNIT, SUFFIX
 
       // Add tooltip container
       const tooltipGroup = svg.append("g")
@@ -218,7 +275,7 @@ const DashbaordPage = () => {
       // Create line generator for this series
       const line = d3.line<GraphDataType>()
         .x(d => x(d.date))
-        .y(d => y(d.value));
+        .y(d => y(d.value / divisor));
 
       // Add line path
       svg.append('path')
@@ -236,7 +293,7 @@ const DashbaordPage = () => {
         .append('circle')
         .attr('class', `dot-${key}`)
         .attr('cx', d => x(d.date))
-        .attr('cy', d => y(d.value))
+        .attr('cy', d => y(d.value / divisor))
         .attr('r', 5)
         .attr('fill', fill)
         .attr('stroke', strokeColor)
