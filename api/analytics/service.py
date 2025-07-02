@@ -27,6 +27,14 @@ def get_all_sources(db: Session):
             .all()
         )
 
+        # if no sources found in the database, raise a 404 reponse       
+        if(len(results) == 0):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No analytic sources found"
+            )
+
+
         # Format as list of dicts
         sources = [
             analytic_source_reponse(
@@ -46,5 +54,16 @@ def get_all_sources(db: Session):
         ]
 
         return sources
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service unavailable"
+        )
+    
     except Exception as e:
-        raise e
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+    finally:
+        db.close()

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Response
 from database.core import DbSession
 from starlette import status
 from analytics.service import get_all_sources
+from sqlalchemy.exc import DatabaseError
 
 router = APIRouter(
     prefix='/analytics',
