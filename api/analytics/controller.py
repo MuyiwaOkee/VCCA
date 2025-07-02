@@ -41,7 +41,7 @@ async def get_all_sources_endpoint(db: DbSession):
             detail="An unexpected error occurred during registration"
         )
     
-@router.get('/sources/data/', status_code=status.HTTP_200_OK)
+@router.get('/sources/data', status_code=status.HTTP_200_OK)
 async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: Str_To_List_UUID, year: Optional[int] = datetime.now().year, period: Optional[str] = 'monthly'):
     try:
         return get_datapoints_from_sources(db, source_ids, year, period)
