@@ -7,37 +7,12 @@ import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVe
 import * as d3 from 'd3';
 import cn from '@/utils/cn';
 import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { log10, min, floor } from 'mathjs';
+import { min } from 'mathjs';
 import { useQuery } from '@tanstack/react-query';
-
-type GraphDataType = {
-  value: number;
-  creation_date_utc: Date;
-  is_forecast: boolean
-};
-
-type DatapointsType = {
-    stroke_hex: string;
-    fill_hex: string;
-    data: GraphDataType[];
-    is_value_percent:Boolean;
-    source_id: string,
-    unit: string
-}
-
-type GetAllSourcesResponse = {
-    id: string,
-    category_name: string,
-    sector_name: string,
-    country_iso_code: string,
-    value_is_percent: boolean,
-    currency_iso_code: string,
-    description: string | null,
-    period: "monthly" | "quarterly",
-    unit: string,
-    stroke_hex: string,
-    fill_hex: string
-}
+import { GetSuffix } from '@/utils/GetSuffix';
+import { analytics_source_response } from '@/types/response/analytics/analytics_source_response';
+import { analytics_datapoint_response } from '@/types/response/analytics/analytics_datapoint_response';
+import { datapoints_response } from '@/types/response/analytics/datapoints_response';
 
 const GetAllSources = async () => {
     const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -47,7 +22,7 @@ const GetAllSources = async () => {
         }
     });
 
-    const data:GetAllSourcesResponse[] = await response.json();
+    const data:analytics_source_response[] = await response.json();
 
     return data
 }
@@ -60,7 +35,7 @@ const GetDatapointsInSources = async (year: number, period: 'monthly' | 'quarter
         }
     });
 
-    const data:DatapointsType[] = await response.json();
+    const data:datapoints_response[] = await response.json();
 
     return data
 }
@@ -108,45 +83,6 @@ const DashbaordPage = () => {
       setSelectedSources(source_ids);
     }
   }, []);
-
-  // gets divisor and suffix to reduce visual scale of datapoints on the graph. 
-  const GetSuffix = (minValue: number) => {
-    const exponent = floor(log10(minValue))
-
-    const divisor = 10 ** exponent;
-    
-    let suffix = ''
-    switch (divisor) {
-      case 10:
-        suffix = '(tens)'
-        break;
-
-      case 100:
-        suffix = '(hundreds)'
-        break;
-
-      case 1000:
-        suffix = '(thousands)'
-        break;
-
-      case 10000:
-        suffix = '(ten-thousands)'
-        break;
-
-      case 100000:
-        suffix = '(hundred-thousands)'
-        break;
-
-      case 1000000:
-        suffix = '(millions)'
-        break;
-    
-      default:
-        break;
-    }
-
-    return { divisor, suffix }
-  }
   
   // Get size of div
   useEffect(() => {
@@ -190,8 +126,6 @@ const DashbaordPage = () => {
             creation_date_utc: new Date(d.creation_date_utc)
           }))
         }));
-
-      console.log('Your datapoints are here: ', datapoints);
 
       // set current price information
       let percentChange: number | undefined = undefined;
@@ -317,7 +251,7 @@ const DashbaordPage = () => {
         // Draw each series
       datapoints.forEach(({ data, stroke_hex, fill_hex, is_value_percent, unit }, key) => {
         // Create line generator for this series
-        const line = d3.line<GraphDataType>()
+        const line = d3.line<analytics_datapoint_response>()
           .x(d => x(d.creation_date_utc))
           .y(d => y(d.value / divisor));
 
