@@ -87,9 +87,10 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 AnalyticsSource.value_is_percent,
                 AnalyticsPalette.fill_hex.label('fill_hex'),
                 AnalyticsPalette.stroke_hex.label('stroke_hex'),
+                AnalyticsSource.unit
             ).filter(AnalyticsSource.id == source_id).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id).first()
     
-    is_value_percent, fill_hex, stroke_hex = query_result
+    is_value_percent, fill_hex, stroke_hex, unit = query_result
 
     if not query_result:
         raise HTTPException(
@@ -117,7 +118,9 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 stroke_hex=stroke_hex,
                 fill_hex=fill_hex,
                 is_value_percent=is_value_percent,
-                data=data
+                data=data,
+                source_id=source_id,
+                unit=unit
             )
 
             return response
@@ -171,7 +174,9 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 stroke_hex=stroke_hex,
                 fill_hex=fill_hex,
                 is_value_percent=is_value_percent,
-                data=data
+                data=data,
+                source_id=source_id,
+                unit=unit
             )
             
             return response
@@ -211,6 +216,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
         AnalyticsSource.value_is_percent,
         AnalyticsPalette.fill_hex.label('fill_hex'),
         AnalyticsPalette.stroke_hex.label('stroke_hex'),
+        AnalyticsSource.unit
     ).filter(
         AnalyticsSource.id.in_(source_ids)
     ).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id
@@ -235,7 +241,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             ).all()
             
             response = []
-            for id, is_value_percent, fill_hex, stroke_hex in sources:
+            for id, is_value_percent, fill_hex, stroke_hex, unit in sources:
                 
                 data = [
                     analytic_datapoint_reponse(
@@ -250,7 +256,9 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
                     stroke_hex=stroke_hex,
                     fill_hex=fill_hex,
                     is_value_percent=is_value_percent,
-                    data=data
+                    data=data,
+                    source_id=id,
+                    unit=unit
                 )
 
                 response.append(datapoints_response_dict)
@@ -319,13 +327,15 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
                         ))
             
             response = []
-            for id, is_value_percent, fill_hex, stroke_hex in sources:
+            for id, is_value_percent, fill_hex, stroke_hex, unit in sources:
 
                 datapoints_response_dict = datapoints_response(
                     stroke_hex=stroke_hex,
                     fill_hex=fill_hex,
                     is_value_percent=is_value_percent,
-                    data=results[str(id)]
+                    data=results[str(id)],
+                    source_id=id,
+                    unit=unit
                 )
 
                 response.append(datapoints_response_dict)

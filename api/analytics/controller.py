@@ -20,7 +20,10 @@ def parse_uuid_list(source_ids: str) -> List[UUID]:
         try:
             result.append(UUID(id))
         except ValueError:
-            raise ValueError(f"'{id}' is not a valid UUID")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"'{id}' is not a valid UUID"
+            )
     return result
 
 # create dependency

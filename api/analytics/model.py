@@ -28,3 +28,5 @@ class datapoints_response(BaseModel):
     fill_hex: str
     is_value_percent: bool
     data: list[analytic_datapoint_reponse]
+    source_id: UUID
+    unit: str
