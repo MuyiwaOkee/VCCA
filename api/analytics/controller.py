@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from database.core import DbSession
 from starlette import status
 from analytics.service import get_all_sources, get_datapoints_from_source, get_datapoints_from_sources
@@ -28,6 +28,7 @@ def parse_uuid_list(source_ids: str) -> List[UUID]:
 
 # create dependency
 Str_To_List_UUID = Annotated[list[UUID], Depends(parse_uuid_list)]
+Year_Dependency = Annotated[Optional[int], Query(ge=2020, le=datetime.now().year)]
 
 @router.get('/sources/all', status_code=status.HTTP_200_OK)
 async def get_all_sources_endpoint(db: DbSession):
@@ -45,7 +46,7 @@ async def get_all_sources_endpoint(db: DbSession):
         )
     
 @router.get('/sources/data', status_code=status.HTTP_200_OK)
-async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: Str_To_List_UUID, year: Optional[int] = datetime.now().year, period: Optional[str] = 'monthly'):
+async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: Str_To_List_UUID, year: Year_Dependency = datetime.now().year, period: Optional[str] = 'monthly'):
     try:
         return get_datapoints_from_sources(db, source_ids, year, period)
     except HTTPException as e:
@@ -60,7 +61,7 @@ async def get_datapoint_from_sources_endpoint(db: DbSession, source_ids: Str_To_
         )
     
 @router.get('/source/data/{source_id}', status_code=status.HTTP_200_OK)
-async def get_datapoint_from_source_endpoint(db: DbSession, source_id: UUID, year: Optional[int] = datetime.now().year, period: Optional[str] = 'monthly'):
+async def get_datapoint_from_source_endpoint(db: DbSession, source_id: UUID, year: Year_Dependency = datetime.now().year, period: Optional[str] = 'monthly'):
     try:
         return get_datapoints_from_source(db, source_id, year, period)
     except HTTPException as e:
