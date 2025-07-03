@@ -18,7 +18,7 @@ import {
 import { UseComboboxState, UseComboboxStateChangeOptions, useCombobox, useMultipleSelection } from 'downshift';
 import { forwardRef, useState, useImperativeHandle } from 'react';
 
-export type MultiselectItem = { value: string, strokeColor: string, fill: string };
+export type MultiselectItem = { value: string, strokeColor: string, fill: string, id: string };
 
 export type MultiselectWithMultipleSelectionsAndVerticalScrollProps = {
     label: string,

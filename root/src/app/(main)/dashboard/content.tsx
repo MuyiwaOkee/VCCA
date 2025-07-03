@@ -7,7 +7,8 @@ import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVe
 import * as d3 from 'd3';
 import cn from '@/utils/cn';
 import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { log10, min, max, floor } from 'mathjs';
+import { log10, min, floor } from 'mathjs';
+import { useQuery } from '@tanstack/react-query';
 
 type GraphDataType = {
   value: number;
@@ -21,6 +22,33 @@ type DatapointsType = {
     valueType: "Price" | "Points";
 }
 
+type GetAllSourcesResponse = {
+    id: string,
+    category_name: string,
+    sector_name: string,
+    country_iso_code: string,
+    value_is_percent: boolean,
+    currency_iso_code: string,
+    description: string | null,
+    period: "monthly" | "quarterly",
+    unit: string,
+    stroke_hex: string,
+    fill_hex: string
+}
+
+export const GetAllSources = async () => {
+    const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
+        method: 'GET',
+        headers:{
+            'Content-Type': 'Application/json'
+        }
+    });
+
+    const data:GetAllSourcesResponse[] = await response.json();
+
+    return data
+}
+
 const DashbaordPage = () => {
   // Search query params
   const maxYearValue = new Date().getFullYear(); //Gets the current year
@@ -28,6 +56,11 @@ const DashbaordPage = () => {
   const [isMonthlyTimescale, toggleMonthlyTimescale] = useQueryState('monthlytimescale', parseAsBoolean.withDefault(true));
   const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(maxYearValue));
   const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
+
+  const { data:analytic_sources } = useQuery({
+    queryFn: GetAllSources,
+    queryKey: ["sources"]
+  });
 
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
   const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
@@ -40,19 +73,23 @@ const DashbaordPage = () => {
     value && setMultiSelectData(value);
 
     if(value?.selectedItems) {
-      const sourceNames = value.selectedItems.map(({ value }) => {return value});
-      setSelectedSources(sourceNames);
+      const source_ids = value.selectedItems.map(({ id }) => {return id});
+      setSelectedSources(source_ids);
     }
   }, []);
-  
-  const multiselectItems:MultiselectItem[] = [
-    { value: 'Interest rate', strokeColor: '#1435cb', fill: '#5868ef'},
-    { value: 'Option B', strokeColor: '#DCB30F', fill: '#f4d35e' },
-  ];
 
-  const defaultSelectedItems = multiselectItems.filter(({ value }) => selectedSources?.includes(value));
+  const GetMultiselectItems = useCallback((analytic_sources: GetAllSourcesResponse[]) => {
+    const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
+      return {
+        id,
+        value: `${category_name}: ${sector_name}, ${country_iso_code}`,
+        strokeColor: stroke_hex,
+        fill: fill_hex
+      }
+    });
 
-  console.log(defaultSelectedItems);
+    return items;
+  }, []);
 
   // Mock data - 12 months of interest rates
   const generateMockData = (): GraphDataType[] => {
@@ -182,7 +219,6 @@ const DashbaordPage = () => {
 
    // Get combined domain across all series
     const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
-    const allDates = datapoints.flatMap(s => s.data.map(d => d.date));
 
     // get suffix and divisor
     const { divisor, suffix } = GetSuffix(min(allValues));
@@ -191,7 +227,7 @@ const DashbaordPage = () => {
 
     // X scale
     const x = d3.scaleTime()
-      .domain(d3.extent(allDates) as [Date, Date])
+      .domain([new Date(currentYear, 0, 1), new Date(currentYear, 11, 31)])
       .range([0, width]);
 
     // Y scale
@@ -339,7 +375,7 @@ const DashbaordPage = () => {
                   tooltip.style("display", "none");
                 });
             });
-  }, [multiSelectData, dimensions, currentYear, isMonthlyTimescale]);
+  }, [selectedSources, dimensions, currentYear, isMonthlyTimescale]);
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
@@ -348,9 +384,9 @@ const DashbaordPage = () => {
         {/* Upper Bar */}
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
-        <div className={cn(multiSelectData?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
-          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={multiselectItems} defaultSelectedItems={defaultSelectedItems}/>
-        </div>
+        {analytic_sources && <div className={cn(multiSelectData?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
+          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={GetMultiselectItems(analytic_sources)} />
+        </div>}
         {/* Time btns */}
         <div className="flex absolute top-6 right-0 justify-start items-center gap-4">
             <div className="flex justify-start items-center gap-2">
