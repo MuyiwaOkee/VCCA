@@ -36,7 +36,7 @@ type GetAllSourcesResponse = {
     fill_hex: string
 }
 
-export const GetAllSources = async () => {
+const GetAllSources = async () => {
     const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
         method: 'GET',
         headers:{
@@ -49,6 +49,21 @@ export const GetAllSources = async () => {
     return data
 }
 
+const GetSourcesItems = async () => {
+  const analytic_sources = await GetAllSources();
+
+    const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
+      return {
+        id,
+        value: `${category_name}: ${sector_name}, ${country_iso_code}`,
+        strokeColor: stroke_hex,
+        fill: fill_hex
+      }
+    });
+
+    return items;
+  }
+
 const DashbaordPage = () => {
   // Search query params
   const maxYearValue = new Date().getFullYear(); //Gets the current year
@@ -58,7 +73,7 @@ const DashbaordPage = () => {
   const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
 
   const { data:analytic_sources } = useQuery({
-    queryFn: GetAllSources,
+    queryFn: GetSourcesItems,
     queryKey: ["sources"]
   });
 
@@ -76,19 +91,6 @@ const DashbaordPage = () => {
       const source_ids = value.selectedItems.map(({ id }) => {return id});
       setSelectedSources(source_ids);
     }
-  }, []);
-
-  const GetMultiselectItems = useCallback((analytic_sources: GetAllSourcesResponse[]) => {
-    const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
-      return {
-        id,
-        value: `${category_name}: ${sector_name}, ${country_iso_code}`,
-        strokeColor: stroke_hex,
-        fill: fill_hex
-      }
-    });
-
-    return items;
   }, []);
 
   // Mock data - 12 months of interest rates
@@ -385,7 +387,7 @@ const DashbaordPage = () => {
     <section className="self-stretch px-2 inline-flex justify-between items-center relative">
       {/* data picker */}
         {analytic_sources && <div className={cn(multiSelectData?.isOpen ? 'absolute top-0 left-0' : 'relative')}>
-          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={GetMultiselectItems(analytic_sources)} />
+          <MultiselectWithMultipleSelectionsAndVerticalScroll ref={multiSelectRef} label='Data sources' isRequired id='datapoint-dropdown' items={analytic_sources} defaultSelectedItems={analytic_sources.filter(( {id }) => selectedSources?.includes(id))}/>
         </div>}
         {/* Time btns */}
         <div className="flex absolute top-6 right-0 justify-start items-center gap-4">
