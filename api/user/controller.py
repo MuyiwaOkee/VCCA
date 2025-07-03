@@ -9,6 +9,7 @@ router = APIRouter(
     tags=['user']
 )
 
+# endpoint for user registration
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def register_user_endpoint(db: DbSession, register_user_request: RegisterUserRequest):
     try:

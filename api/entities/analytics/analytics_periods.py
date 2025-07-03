@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from database.core import Base
 
+# SQL analytics period table
 class AnalyticsPeriod(Base):
     __tablename__ = "analytics_periods"
 

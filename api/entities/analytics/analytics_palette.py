@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from database.core import Base
 
+# SQL analystics colour palette table
 class AnalyticsPalette(Base):
     __tablename__ = "analytics_palette"
 

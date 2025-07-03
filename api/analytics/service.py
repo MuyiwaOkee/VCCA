@@ -13,8 +13,10 @@ from sqlalchemy.exc import DatabaseError
 from uuid import UUID
 from datetime import datetime, date
 
+# returns all available analytic sources
 def get_all_sources(db: Session):
     try:
+        # get all sources with their colour palette and catagory and sector information at once
         results = (
             db.query(
                 AnalyticsSource,
@@ -40,7 +42,7 @@ def get_all_sources(db: Session):
             )
 
 
-        # Format as list of dicts
+        # Format as list of information from the query
         sources = [
             analytic_source_reponse(
                 id=source.id,
@@ -71,8 +73,9 @@ def get_all_sources(db: Session):
             detail="Internal server error"
         )
 
+# return all datapoint records for a single source within a given year, grouped either monthly or quarterly
 def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: str):
-    # quick argument checking before querying
+    # if an invalid period is provided, raise a 400 response
     if period != 'monthly' and period != 'quarterly':
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -83,6 +86,7 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
     if year > datetime.now().year:
         return []
     
+    # query the source record with te given id and get its colour palette information at once
     query_result = db.query(
                 AnalyticsSource.value_is_percent,
                 AnalyticsPalette.fill_hex.label('fill_hex'),
@@ -90,21 +94,24 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                 AnalyticsSource.unit
             ).filter(AnalyticsSource.id == source_id).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id).first()
     
-    is_value_percent, fill_hex, stroke_hex, unit = query_result
-
+     # if nothing the returned from the query, raise a 404 response 
     if not query_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Analytics source not found'
-        )        
+        )  
     
+    is_value_percent, fill_hex, stroke_hex, unit = query_result
+
     try:
         if period == 'monthly':
+            # query all datapoint records for the soource within the given year
             datapoints = db.query(AnalyticsDatapoint).filter(
             AnalyticsDatapoint.source_id == source_id, 
             extract('year', AnalyticsDatapoint.creation_date_utc) == year
             ).order_by(AnalyticsDatapoint.creation_date_utc).all()
             
+            # format the information
             data = [
                 analytic_datapoint_reponse(
                     value=datapoint.value,
@@ -135,6 +142,7 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
             
             data = []
             
+            # make queries for each quarter
             for quarter_start in quarter_starts:
                 quarter_end_month = quarter_start.month + 2
                 quarter_end = date(year, quarter_end_month, 1)
@@ -167,7 +175,7 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
                         data.append(analytic_datapoint_reponse(
                             value=float(sum_result.total),
                             creation_date_utc=quarter_start,
-                            is_forecast=False  # Summed values don't preserve forecast status
+                            is_forecast=False 
                         ))
 
             response = datapoints_response(
@@ -186,6 +194,9 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database service unavailable"
         )
+    
+    except HTTPException as e:
+        raise e
      
     except Exception as e:
         raise HTTPException(
@@ -193,14 +204,16 @@ def get_datapoints_from_source(db: Session, source_id: UUID, year: int, period: 
             detail=e
         )
 
+# return all datapoint records for a the sources provided within a given year, grouped either monthly or quarterly
 def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, period: str):
-    # quick argument checking before querying
+    # if an invalid period is provided, raise a 400 response 
     if period != 'monthly' and period != 'quarterly':
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid period'
         )
     
+    # if no sources where provided to query, raise a 400 response
     if len(source_ids) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -211,6 +224,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
     if year > datetime.now().year:
         return []
     
+    # query all the sources, with their color palette information at once
     sources = db.query(
         AnalyticsSource.id,
         AnalyticsSource.value_is_percent,
@@ -221,7 +235,8 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
         AnalyticsSource.id.in_(source_ids)
     ).join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id
     ).all()
-            
+
+    # if no sources where found, raise a 404 response
     if not sources:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -230,6 +245,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
     
     try:
         if period == 'monthly':
+            # query all datapoints belonging to all of the given sources within the year
             datapoints = db.query(AnalyticsDatapoint).filter(
                 and_(
                     AnalyticsDatapoint.source_id.in_(source_ids),
@@ -242,7 +258,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             
             response = []
             for id, is_value_percent, fill_hex, stroke_hex, unit in sources:
-                
+                # for each source, create a list of datapoints with only incudes the datapoint records belonging to that source.
                 data = [
                     analytic_datapoint_reponse(
                         value=datapoint.value,
@@ -278,6 +294,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             
             results = defaultdict(list)
 
+            # make queries for each quarter
             for _, quarter_start, quarter_end in quarters:
                 # For percent sources (get max value per quarter)
                 percent_sources = [id for id, is_percent in source_config.items() if is_percent]
@@ -328,7 +345,7 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             
             response = []
             for id, is_value_percent, fill_hex, stroke_hex, unit in sources:
-
+                # format the data
                 datapoints_response_dict = datapoints_response(
                     stroke_hex=stroke_hex,
                     fill_hex=fill_hex,
@@ -347,6 +364,9 @@ def get_datapoints_from_sources(db: Session, source_ids: list[UUID], year: int, 
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="database unavailable"
         )
+    
+    except HTTPException as e:
+        raise e
      
     except Exception as e:
         raise HTTPException(

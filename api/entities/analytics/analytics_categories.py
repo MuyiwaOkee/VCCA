@@ -4,6 +4,7 @@ import uuid
 from database.core import Base
 from sqlalchemy.orm import validates
 
+# SQL analytics catagories table
 class AnalyticsCategory(Base):
     __tablename__ = "analytics_categories"
 
@@ -14,7 +15,7 @@ class AnalyticsCategory(Base):
     def __repr__(self):
         return f"<AnalyticsCategory(id={self.id}, name='{self.name}', order={self.displayOrder})>"
 
-    # Optional: Add validation for displayOrder to prevent negative numbers
+    #validation for displayOrder to prevent negative numbers
     @validates('displayOrder')
     def validate_display_order(self, key, order):
         if order < 0:

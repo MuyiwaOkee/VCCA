@@ -1,9 +1,9 @@
-# Here we will create the layout for the db table user
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from database.core import Base
 
+# SQL User table
 class Users(Base):
     __tablename__ = 'users'
 

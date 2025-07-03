@@ -1,9 +1,9 @@
-# Here we will create the layout for the db table user
 from sqlalchemy import Column, String, Boolean, Date, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from database.core import Base
 
+# SQL analytics source table
 class AnalyticsSource(Base):
     __tablename__ = "analytics_source"
 

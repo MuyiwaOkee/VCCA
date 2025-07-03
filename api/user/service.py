@@ -6,20 +6,24 @@ from uuid import uuid4
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError, DatabaseError
 
-# Setup password hashing (using bcrypt, with automatic salt generation)
+# Setup password hashing with salting
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# hashes plain password string
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
+# creates new user record in the database based on the information in the request body
 def register_user(db: Session, request: RegisterUserRequest):
     try:
+        # raise a 400 response if information is not provided
         if not request.email or not request.password or not request.role:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Missing account details"
             )
         
+        # Create new user based on the user table schema
         create_user_model = Users(
             id=uuid4(),
             email=request.email,
@@ -31,6 +35,7 @@ def register_user(db: Session, request: RegisterUserRequest):
         db.add(create_user_model)
         db.commit()
     except IntegrityError as e:
+        # if the email is currently on another user, throw error and raise 400 response
         db.rollback()
         if "duplicate key" in str(e).lower() or "unique constraint" in str(e).lower():
             raise HTTPException(

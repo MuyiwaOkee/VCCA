@@ -9,6 +9,7 @@ router = APIRouter(
     tags=['auth']
 )
 
+# verify user credentials endpoint
 @router.post('/verify', status_code=status.HTTP_200_OK)
 async def verify_user_credentials_endpoint(db: DbSession, register_user_request: UserCredentialsRequest, response: Response):
     try:
@@ -24,6 +25,7 @@ async def verify_user_credentials_endpoint(db: DbSession, register_user_request:
             detail="An unexpected error occurred during registration"
         )
 
+# does email exist endpoint
 @router.get('/email/{email}', status_code=status.HTTP_200_OK)
 async def does_email_exist_endpoint(email:str, db: DbSession):
     try:

@@ -7,8 +7,8 @@ import os
 
 load_dotenv()
 
-# Making database connection
-DATABASE_URL = os.getenv('DATABASE_URL')
+# connect to database
+DATABASE_URL = os.getenv('DATABASE_URL') # Get connection string from .env
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autoflush=False, bind=engine)
@@ -23,5 +23,5 @@ def get_db():
     finally:
         db.close()
 
-# dependency for injection
+# create dependency injection
 DbSession = Annotated[Session, Depends(get_db)]
