@@ -6,7 +6,7 @@ import DataPointIndicator from '@/components/DataPointIndicator';
 import { MultiselectItem, MultiselectRef, MultiselectWithMultipleSelectionsAndVerticalScroll } from '@/components/MultiSelectWithScrollbar';
 import * as d3 from 'd3';
 import cn from '@/utils/cn';
-import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { min } from 'mathjs';
 import { useQuery } from '@tanstack/react-query';
 import { GetSuffix } from '@/utils/GetSuffix';
@@ -27,7 +27,7 @@ const GetAllSources = async () => {
     return data
 }
 
-const GetDatapointsInSources = async (year: number, period: 'monthly' | 'quarterly', source_ids: string[]) => {
+const GetDatapointsInSources = async (year: number, period: string, source_ids: string[]) => {
     const response = await fetch(`http://127.0.0.1:8000/analytics/sources/data?year=${year}&period=${period}&source_ids=${source_ids.join(';')}`, {
         method: 'GET',
         headers:{
@@ -59,7 +59,7 @@ const DashbaordPage = () => {
   // Search query params
   const maxYearValue = new Date().getFullYear(); //Gets the current year
   const minYearValue = 2020 //the minimum year the app will have data points for
-  const [isMonthlyTimescale, toggleMonthlyTimescale] = useQueryState('monthlytimescale', parseAsBoolean.withDefault(true));
+  const [period, togglePeriod] = useQueryState('period', parseAsString.withDefault('monthly'));
   const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(maxYearValue));
   const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
 
@@ -118,7 +118,7 @@ const DashbaordPage = () => {
       if(!selectedSources || selectedSources.length == 0) return;
 
       // fetch datapoints. ensure that the creation date utc property is of type Date
-      const datapoints = (await GetDatapointsInSources(currentYear, isMonthlyTimescale ? 'monthly' : 'quarterly', selectedSources))
+      const datapoints = (await GetDatapointsInSources(currentYear, period, selectedSources))
         .map(series => ({
           ...series,
           data: series.data.map(d => ({
@@ -321,7 +321,7 @@ const DashbaordPage = () => {
 
     RenderData();
     
-  }, [selectedSources, dimensions, currentYear, isMonthlyTimescale]);
+  }, [selectedSources, dimensions, currentYear, period]);
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
@@ -336,8 +336,8 @@ const DashbaordPage = () => {
         {/* Time btns */}
         <div className="flex absolute top-6 right-0 justify-start items-center gap-4">
             <div className="flex justify-start items-center gap-2">
-                <Button colorScheme='secondary' className={cn(isMonthlyTimescale ? 'bg-[#B3D7FF]/90' : '')} onClick={() => toggleMonthlyTimescale(true)}>1M</Button>
-                <Button colorScheme='secondary' className={cn(!isMonthlyTimescale ? 'bg-[#B3D7FF]/90' : '')} onClick={() => toggleMonthlyTimescale(false)}>3M</Button>
+                <Button colorScheme='secondary' className={cn(period == 'monthly' ? 'bg-[#B3D7FF]/90' : '')} onClick={() => togglePeriod('monthly')}>1M</Button>
+                <Button colorScheme='secondary' className={cn(period == 'quarterly' ? 'bg-[#B3D7FF]/90' : '')} onClick={() => togglePeriod('quarterly')}>3M</Button>
             </div>
             {/* Year selector */}
             <div className="h-10 flex justify-center items-center gap-1">
