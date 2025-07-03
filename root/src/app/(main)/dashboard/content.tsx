@@ -12,14 +12,17 @@ import { useQuery } from '@tanstack/react-query';
 
 type GraphDataType = {
   value: number;
-  date: Date;
+  creation_date_utc: Date;
+  is_forecast: boolean
 };
 
 type DatapointsType = {
-    strokeColor: string;
-    fill: string;
+    stroke_hex: string;
+    fill_hex: string;
     data: GraphDataType[];
-    valueType: "Price" | "Points";
+    is_value_percent:Boolean;
+    source_id: string,
+    unit: string
 }
 
 type GetAllSourcesResponse = {
@@ -45,6 +48,19 @@ const GetAllSources = async () => {
     });
 
     const data:GetAllSourcesResponse[] = await response.json();
+
+    return data
+}
+
+const GetDatapointsInSources = async (year: number, period: 'monthly' | 'quarterly', source_ids: string[]) => {
+    const response = await fetch(`http://127.0.0.1:8000/analytics/sources/data?year=${year}&period=${period}&source_ids=${source_ids.join(';')}`, {
+        method: 'GET',
+        headers:{
+            'Content-Type': 'Application/json'
+        }
+    });
+
+    const data:DatapointsType[] = await response.json();
 
     return data
 }
@@ -93,18 +109,6 @@ const DashbaordPage = () => {
     }
   }, []);
 
-  // Mock data - 12 months of interest rates
-  const generateMockData = (): GraphDataType[] => {
-    const months = Array.from({ length: 12 }, (_, i) => i);
-    
-    return months.map(month => {
-      // Random interest rate between 1% and 10%
-      const value = (Math.random() * 9 + 1) * 1000;
-      const date = new Date(currentYear, month, 1);
-      return { value, date };
-    });
-  };
-
   // gets divisor and suffix to reduce visual scale of datapoints on the graph. 
   const GetSuffix = (minValue: number) => {
     const exponent = floor(log10(minValue))
@@ -114,10 +118,6 @@ const DashbaordPage = () => {
     let suffix = ''
     switch (divisor) {
       case 10:
-        suffix = ''
-        break;
-
-      case 100:
         suffix = '(tens)'
         break;
 
@@ -174,209 +174,219 @@ const DashbaordPage = () => {
     // Only render when we have valid dimensions and data
     if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
 
-    if(!multiSelectData) return;
+    const RenderData = async () => {
+      // Clear previous content
+      d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
 
-    const datapoints:DatapointsType[] = multiSelectData?.selectedItems.map(({ strokeColor, fill, value }) =>{
-      return {
-        strokeColor,
-        fill,
-        data: generateMockData(),
-        valueType: value === 'Interest rate' ? 'Points' : 'Price'
-      };
-    })
+      // first, check theres selected sources to render
+      if(!selectedSources || selectedSources.length == 0) return;
 
-    let percentChange: number | undefined = undefined;
-  if (datapoints.length > 0 && datapoints[0].data.length > 1) {
-    const first = datapoints[0].data[0].value;
-    const last = datapoints[0].data[datapoints[0].data.length - 1].value;
-    const difference = last - first;
-    percentChange = ((difference / first) * 100);
+      // fetch datapoints. ensure that the creation date utc property is of type Date
+      const datapoints = (await GetDatapointsInSources(currentYear, isMonthlyTimescale ? 'monthly' : 'quarterly', selectedSources))
+        .map(series => ({
+          ...series,
+          data: series.data.map(d => ({
+            ...d,
+            creation_date_utc: new Date(d.creation_date_utc)
+          }))
+        }));
 
-    setCurrentPriceInfomation({
-      value: last,
-      percentChange,
-      difference,
-      valueType: datapoints[0].valueType 
-    });
-  } else {
-    setCurrentPriceInfomation(undefined);
-  }
- 
-    // Clear previous content
-    d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
+      console.log('Your datapoints are here: ', datapoints);
 
-    // Chart dimensions and margins
-    const margin = { top: 20, right: 30, bottom: 40, left: 50 };
-    const width = dimensions.width - margin.left - margin.right;
-    const height = dimensions.height - margin.top - margin.bottom;
+      // set current price information
+      let percentChange: number | undefined = undefined;
+      if (datapoints.length > 0 && datapoints[0].data.length > 1) {
+        const first = datapoints[0].data[0].value;
+        const last = datapoints[0].data[datapoints[0].data.length - 1].value;
+        const difference = last - first;
+        percentChange = ((difference / first) * 100);
 
-    // Create SVG
-    const svg = d3.select(svgRef.current)
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+        setCurrentPriceInfomation({
+          value: last,
+          percentChange,
+          difference,
+          valueType: datapoints[0].is_value_percent ? 'Points' : 'Price'
+        });
+      } else {
+        setCurrentPriceInfomation(undefined);
+      }
 
-      if( datapoints.length == 0) return;
+      // Chart dimensions and margins
+      const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+      const width = dimensions.width - margin.left - margin.right;
+      const height = dimensions.height - margin.top - margin.bottom;
 
-   // Get combined domain across all series
-    const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
+      // Create SVG
+      const svg = d3.select(svgRef.current)
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // get suffix and divisor
-    const { divisor, suffix } = GetSuffix(min(allValues));
+        if( datapoints.length == 0) return;
 
-    console.log(`The divisor is ${divisor}, suffix -${suffix}`);
+    // Get combined domain across all series
+      const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
 
-    // X scale
-    const x = d3.scaleTime()
-      .domain([new Date(currentYear, 0, 1), new Date(currentYear, 11, 31)])
-      .range([0, width]);
+      // get suffix and divisor
+      const { divisor, suffix } = GetSuffix(min(allValues));
 
-    // Y scale
-    const y = d3.scaleLinear()
-      .domain([d3.min(allValues)! * 0.95 / divisor, d3.max(allValues)! * 1.05 / divisor])
-      .range([height, 0]);
+      console.log(`the divisor is ${divisor}`)
 
-    // Add X axis
-    svg.append('g')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x))
-      .call(g => g.select('.domain').remove()) // Remove axis line
-      .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
-      .call(g => g.selectAll('.tick text').text('')) // Remove default labels
-      .call(g => g.selectAll('.tick')
-        .append('text')
-        .attr('y', 20)
-        .attr('x', 0)
-        .attr('dy', '0.35em')
-        .attr('text-anchor', 'middle')
-        .text(d => d3.timeFormat('%b')(new Date(d as Date))) // Short month names
-        .style('font-size', '12px')
-        .style('fill', '#666')
-      );
+      // X scale
+      const x = d3.scaleTime()
+        .domain([new Date(currentYear, 0, 1), new Date(currentYear, 11, 31)])
+        .range([0, width]);
 
-    // Add Y axis
+      // Y scale
+      const y = d3.scaleLinear()
+        .domain([d3.min(allValues)! * 0.95 / divisor, d3.max(allValues)! * 1.05 / divisor])
+        .range([height, 0]);
+
+      // Add X axis
       svg.append('g')
-      .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${datapoints[0].valueType == 'Price' ? '£' : ''}${d}${datapoints[0].valueType == 'Points' ? '%' : ''}`))
-      .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
-      .call(g => g.select('.domain').remove()) // Remove axis line
-      .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
-      .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
-
-        // Add Y axis label in top left corner
-        svg.append('text')
-          .attr('x', 0) // Align with left edge of the chart area
-          .attr('y', -5) // Position above the top of the chart area
-          .attr('text-anchor', 'start') // Left-align the text
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .call(g => g.select('.domain').remove()) // Remove axis line
+        .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
+        .call(g => g.selectAll('.tick text').text('')) // Remove default labels
+        .call(g => g.selectAll('.tick')
+          .append('text')
+          .attr('y', 20)
+          .attr('x', 0)
+          .attr('dy', '0.35em')
+          .attr('text-anchor', 'middle')
+          .text(d => d3.timeFormat('%b')(new Date(d as Date))) // Short month names
           .style('font-size', '12px')
           .style('fill', '#666')
-          .text(`spending in £, ${suffix}`); //Once api request is added, this will become CATAGORY-SECTOR-NAME in UNIT, SUFFIX
+        );
 
-      // Add tooltip container
-      const tooltipGroup = svg.append("g")
-  .attr("class", "tooltip-group")
-  .style("pointer-events", "none");
+      // Add Y axis
+        svg.append('g')
+        .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${datapoints[0].is_value_percent ? '' : datapoints[0].unit}${d}${datapoints[0].is_value_percent ? ' Points' : ''}`))
+        .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
+        .call(g => g.select('.domain').remove()) // Remove axis line
+        .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
+        .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
 
-    const tooltip = tooltipGroup.append("g")
-      .attr("class", "tooltip-container")
-      .style("display", "none");
+          // Add Y axis label in top left corner
+          svg.append('text')
+            .attr('x', 0) // Align with left edge of the chart area
+            .attr('y', -5) // Position above the top of the chart area
+            .attr('text-anchor', 'start') // Left-align the text
+            .style('font-size', '12px')
+            .style('fill', '#666')
+            .text(`spending in £, ${suffix}`); //Once api request is added, this will become CATAGORY-SECTOR-NAME in UNIT, SUFFIX
 
-    // Tooltip rectangle
-    tooltip.append("rect")
-      .attr("width", 140)
-      .attr("height", 50)
-      .attr("rx", 4)
-      .attr("fill", "white")
-      .attr("stroke", "#ddd")
-      .attr("stroke-width", 1)
-      .style("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.2))"); // Visual prominence;
+        // Add tooltip container
+        const tooltipGroup = svg.append("g")
+    .attr("class", "tooltip-group")
+    .style("pointer-events", "none");
 
-    // Tooltip date text
-    tooltip.append("text")
-      .attr("class", "tooltip-date")
-      .attr("x", 8)
-      .attr("y", 20)
-      .attr("font-size", "12px")
-      .attr("fill", "#333");
+      const tooltip = tooltipGroup.append("g")
+        .attr("class", "tooltip-container")
+        .style("display", "none");
 
-    // Tooltip value text
-    tooltip.append("text")
-      .attr("class", "tooltip-value")
-      .attr("x", 8)
-      .attr("y", 38)
-      .attr("font-size", "12px")
-      .attr("font-weight", "bold")
-      .attr("fill", "#333");
+      // Tooltip rectangle
+      tooltip.append("rect")
+        .attr("width", 140)
+        .attr("height", 50)
+        .attr("rx", 4)
+        .attr("fill", "white")
+        .attr("stroke", "#ddd")
+        .attr("stroke-width", 1)
+        .style("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.2))"); // Visual prominence;
 
-      // Draw each series
-    datapoints.forEach(({ data, strokeColor, fill, valueType }, key) => {
-      // Create line generator for this series
-      const line = d3.line<GraphDataType>()
-        .x(d => x(d.date))
-        .y(d => y(d.value / divisor));
+      // Tooltip date text
+      tooltip.append("text")
+        .attr("class", "tooltip-date")
+        .attr("x", 8)
+        .attr("y", 20)
+        .attr("font-size", "12px")
+        .attr("fill", "#333");
 
-      // Add line path
-      svg.append('path')
-        .datum(data)
-        .attr('fill', 'none')
-        .attr('stroke', strokeColor)
-        .attr('stroke-width', 1.5)
-        .attr('stroke-dasharray', '5,5')
-        .attr('d', line);
+      // Tooltip value text
+      tooltip.append("text")
+        .attr("class", "tooltip-value")
+        .attr("x", 8)
+        .attr("y", 38)
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("fill", "#333");
 
-      // Add circles for data points
-      svg.selectAll(`.dot-${key}`)
-        .data(data)
-        .enter()
-        .append('circle')
-        .attr('class', `dot-${key}`)
-        .attr('cx', d => x(d.date))
-        .attr('cy', d => y(d.value / divisor))
-        .attr('r', 5)
-        .attr('fill', fill)
-        .attr('stroke', strokeColor)
-        .attr('stroke-width', 2)
-        .attr("cursor", "pointer")
-        .on("mouseover", function(event, d) {
-          // Bring tooltip to front
-          tooltipGroup.node()?.parentNode?.appendChild(tooltipGroup.node() as Node);
-  
-          // Get mouse position relative to SVG
-          const [xPos, yPos] = d3.pointer(event, svgRef.current);
-          const tooltipWidth = 140;
-          const tooltipHeight = 50;
-          
-          // Calculate available space
-          const svgWidth = dimensions.width;
-          const rightSpace = svgWidth - xPos;
-          const topSpace = yPos;
-          
-          // Determine tooltip position with edge detection
-          let tooltipX = xPos - 30;
-          let tooltipY = yPos - 40;
-          
-          // Adjust for right edge
-          if (rightSpace < tooltipWidth + 20) {
-            tooltipX = xPos - tooltipWidth - 60;
-          }
-          
-          // Position and show tooltip
-          tooltip
-            .style("display", "block")
-            .attr("transform", `translate(${tooltipX},${tooltipY})`);
-          
-          // Update tooltip content
-          tooltip.select(".tooltip-date")
-            .text(d3.timeFormat("%b %d, %Y")(d.date));
-          
-          tooltip.select(".tooltip-value")
-            .text(`Value: ${valueType == 'Price' ? '£' : ''}${d.value.toFixed(2)}${valueType == 'Points' ? '%' : ''}`);
-                })
-                .on("mouseout", function() {
-                  // Hide tooltip
-                  tooltip.style("display", "none");
-                });
-            });
+        // Draw each series
+      datapoints.forEach(({ data, stroke_hex, fill_hex, is_value_percent, unit }, key) => {
+        // Create line generator for this series
+        const line = d3.line<GraphDataType>()
+          .x(d => x(d.creation_date_utc))
+          .y(d => y(d.value / divisor));
+
+        // Add line path
+        svg.append('path')
+          .datum(data)
+          .attr('fill', 'none')
+          .attr('stroke', stroke_hex)
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '5,5')
+          .attr('d', line);
+
+        // Add circles for data points
+        svg.selectAll(`.dot-${key}`)
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('class', `dot-${key}`)
+          .attr('cx', d => x(d.creation_date_utc))
+          .attr('cy', d => y(d.value / divisor))
+          .attr('r', 5)
+          .attr('fill', fill_hex)
+          .attr('stroke', stroke_hex)
+          .attr('stroke-width', 2)
+          .attr("cursor", "pointer")
+          .on("mouseover", function(event, d) {
+            // Bring tooltip to front
+            tooltipGroup.node()?.parentNode?.appendChild(tooltipGroup.node() as Node);
+    
+            // Get mouse position relative to SVG
+            const [xPos, yPos] = d3.pointer(event, svgRef.current);
+            const tooltipWidth = 140;
+            const tooltipHeight = 50;
+            
+            // Calculate available space
+            const svgWidth = dimensions.width;
+            const rightSpace = svgWidth - xPos;
+            const topSpace = yPos;
+            
+            // Determine tooltip position with edge detection
+            let tooltipX = xPos - 30;
+            let tooltipY = yPos - 40;
+            
+            // Adjust for right edge
+            if (rightSpace < tooltipWidth + 20) {
+              tooltipX = xPos - tooltipWidth - 60;
+            }
+            
+            // Position and show tooltip
+            tooltip
+              .style("display", "block")
+              .attr("transform", `translate(${tooltipX},${tooltipY})`);
+            
+            // Update tooltip content
+            tooltip.select(".tooltip-date")
+              .text(d3.timeFormat("%b %d, %Y")(d.creation_date_utc));
+            
+            tooltip.select(".tooltip-value")
+              .text(`Value: ${is_value_percent ? '' : unit}${d.value.toFixed(2)}${is_value_percent ? 'Points' : ''}`);
+                  })
+                  .on("mouseout", function() {
+                    // Hide tooltip
+                    tooltip.style("display", "none");
+                  });
+              });
+    }
+
+    RenderData();
+    
   }, [selectedSources, dimensions, currentYear, isMonthlyTimescale]);
   
   return (
