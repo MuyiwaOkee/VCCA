@@ -15,6 +15,7 @@ import { analytics_datapoint_response } from '@/types/response/analytics/analyti
 import { datapoints_response } from '@/types/response/analytics/datapoints_response';
 
 const GetAllSources = async () => {
+    try {
     const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
         method: 'GET',
         headers:{
@@ -22,9 +23,22 @@ const GetAllSources = async () => {
         }
     });
 
+    if(!response.ok) {
+      switch (response.status) {
+        case 404:
+          throw new Error("No Sources Found");
+      
+        default:
+          throw new Error("Couldn't connect to server. Please try again");
+      }
+    }
+
     const data:analytics_source_response[] = await response.json();
 
     return data
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
 }
 
 const GetDatapointsInSources = async (year: number, period: string, source_ids: string[]) => {
@@ -41,18 +55,22 @@ const GetDatapointsInSources = async (year: number, period: string, source_ids: 
 }
 
 const GetSourcesItems = async () => {
-  const analytic_sources = await GetAllSources();
+    try {
+      const analytic_sources = await GetAllSources();
 
-    const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
-      return {
-        id,
-        value: `${category_name}: ${sector_name ? sector_name + ',' : ''} ${country_iso_code}`,
-        strokeColor: stroke_hex,
-        fill: fill_hex
-      }
-    });
+      const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
+        return {
+          id,
+          value: `${category_name}: ${sector_name ? sector_name + ',' : ''} ${country_iso_code}`,
+          strokeColor: stroke_hex,
+          fill: fill_hex
+        }
+      });
 
-    return items;
+      return items;
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
   }
 
 const DashbaordPage = () => {
