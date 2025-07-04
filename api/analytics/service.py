@@ -27,7 +27,7 @@ def get_all_sources(db: Session):
                 AnalyticsPeriod.name.label('period_name')
             )
             .join(AnalyticsCategory, AnalyticsSource.category_id == AnalyticsCategory.id)
-            .join(AnalyticsSector, AnalyticsSource.sector_id == AnalyticsSector.id)
+            .outerjoin(AnalyticsSector, AnalyticsSource.sector_id == AnalyticsSector.id)
             .join(AnalyticsPalette, AnalyticsSource.palette_id == AnalyticsPalette.id)
             .join(AnalyticsPeriod, AnalyticsSource.period_id == AnalyticsPeriod.id)
             .order_by(AnalyticsCategory.display_order, AnalyticsSector.name)

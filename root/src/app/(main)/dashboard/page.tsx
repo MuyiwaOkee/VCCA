@@ -46,7 +46,7 @@ const GetSourcesItems = async () => {
     const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
       return {
         id,
-        value: `${category_name}: ${sector_name}, ${country_iso_code}`,
+        value: `${category_name}: ${sector_name ? sector_name + ',' : ''} ${country_iso_code}`,
         strokeColor: stroke_hex,
         fill: fill_hex
       }
@@ -159,22 +159,30 @@ const DashbaordPage = () => {
 
         if( datapoints.length == 0) return;
 
-    // Get combined domain across all series
-      const allValues = datapoints.flatMap(s => s.data.map(d => d.value));
+    // Get combined domain across all series (that are non percent values)
+      const datapoints_continuous = datapoints.filter(({ is_value_percent }) => is_value_percent == false);
+      const allContinuousValues = datapoints_continuous.flatMap(s => s.data.map(d => d.value));
+
+      // Get combined domain across all series with percent values
+      const datapoints_percent =  datapoints.filter(({ is_value_percent }) => is_value_percent == true);
+      const allPercentValues = datapoints_percent.flatMap(s => s.data.map(d => d.value));
 
       // get suffix and divisor
-      const { divisor, suffix } = GetSuffix(min(allValues));
-
-      console.log(`the divisor is ${divisor}`)
+      const { divisor, suffix } = GetSuffix(allContinuousValues.length > 0 ? min(allContinuousValues) : 1);
 
       // X scale
       const x = d3.scaleTime()
         .domain([new Date(currentYear, 0, 1), new Date(currentYear, 11, 31)])
         .range([0, width]);
 
-      // Y scale
-      const y = d3.scaleLinear()
-        .domain([d3.min(allValues)! * 0.95 / divisor, d3.max(allValues)! * 1.05 / divisor])
+      // Y scale for non percent values
+      const y_continuous = d3.scaleLinear()
+        .domain([d3.min(allContinuousValues)! * 0.95 / divisor, d3.max(allContinuousValues)! * 1.05 / divisor])
+        .range([height, 0]);
+       
+      // y scale for percent values
+      const y_percent = d3.scaleLinear()
+        .domain([d3.min(allPercentValues)! * 0.95, d3.max(allPercentValues)! * 1.05])
         .range([height, 0]);
 
       // Add X axis
@@ -196,12 +204,15 @@ const DashbaordPage = () => {
         );
 
       // Add Y axis
+      if(allContinuousValues.length > 0) {
+        const labelText = analytic_sources?.find(({ id }) => id == datapoints_continuous[0].source_id)?.value;
+
         svg.append('g')
-        .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${datapoints[0].is_value_percent ? '' : datapoints[0].unit}${d}${datapoints[0].is_value_percent ? ' Points' : ''}`))
-        .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
-        .call(g => g.select('.domain').remove()) // Remove axis line
-        .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
-        .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
+          .call(d3.axisLeft(y_continuous).ticks(10).tickFormat(d => `${datapoints_continuous[0].unit}${d}`))
+          .attr('transform', `translate(-10, 0)`) // Adjust -10px as needed
+          .call(g => g.select('.domain').remove()) // Remove axis line
+          .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
+          .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
 
           // Add Y axis label in top left corner
           svg.append('text')
@@ -210,8 +221,29 @@ const DashbaordPage = () => {
             .attr('text-anchor', 'start') // Left-align the text
             .style('font-size', '12px')
             .style('fill', '#666')
-            .text(`spending in £, ${suffix}`); //Once api request is added, this will become CATAGORY-SECTOR-NAME in UNIT, SUFFIX
+            .text(`${labelText ? labelText : ''}, ${suffix}`);
+      }
+        
+      if(allPercentValues.length > 0) {
+        const labelText = analytic_sources?.find(({ id }) => id == datapoints_percent[0].source_id)?.value;
 
+        svg.append('g')
+        .call(d3.axisLeft(y_percent).ticks(10).tickFormat(d => `${d}%`))
+        .attr('transform', `translate(${width}, 0)`) // Adjust -10px as needed
+        .call(g => g.select('.domain').remove()) // Remove axis line
+        .call(g => g.selectAll('.tick line').remove()) // Remove tick lines
+        .call(g => g.selectAll('.tick text').style('font-size', '12px').style('fill', '#666'));
+
+        // Add Y axis label in top left corner
+          svg.append('text')
+            .attr('x', width) // Align with left edge of the chart area
+            .attr('y', -5) // Position above the top of the chart area
+            .attr('text-anchor', 'end') // Left-align the text
+            .style('font-size', '12px')
+            .style('fill', '#666')
+            .text(`${labelText ? labelText : ''}`);
+      }
+        
         // Add tooltip container
         const tooltipGroup = svg.append("g")
     .attr("class", "tooltip-group")
@@ -251,9 +283,10 @@ const DashbaordPage = () => {
         // Draw each series
       datapoints.forEach(({ data, stroke_hex, fill_hex, is_value_percent, unit }, key) => {
         // Create line generator for this series
+        const y_value_func = (value: number) => is_value_percent ? y_percent(value) : y_continuous(value);
         const line = d3.line<analytics_datapoint_response>()
           .x(d => x(d.creation_date_utc))
-          .y(d => y(d.value / divisor));
+          .y(d => y_value_func(is_value_percent ? d.value : d.value / divisor));
 
         // Add line path
         svg.append('path')
@@ -271,7 +304,7 @@ const DashbaordPage = () => {
           .append('circle')
           .attr('class', `dot-${key}`)
           .attr('cx', d => x(d.creation_date_utc))
-          .attr('cy', d => y(d.value / divisor))
+          .attr('cy', d => y_value_func(is_value_percent ? d.value : d.value / divisor))
           .attr('r', 5)
           .attr('fill', fill_hex)
           .attr('stroke', stroke_hex)
@@ -310,7 +343,7 @@ const DashbaordPage = () => {
               .text(d3.timeFormat("%b %d, %Y")(d.creation_date_utc));
             
             tooltip.select(".tooltip-value")
-              .text(`Value: ${is_value_percent ? '' : unit}${d.value.toFixed(2)}${is_value_percent ? 'Points' : ''}`);
+              .text(`Value: ${is_value_percent ? '' : unit}${d.value.toFixed(2)}${is_value_percent ? ' Points' : ''}`);
                   })
                   .on("mouseout", function() {
                     // Hide tooltip

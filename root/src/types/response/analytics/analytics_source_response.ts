@@ -1,7 +1,7 @@
 export type analytics_source_response = {
     id: string,
     category_name: string,
-    sector_name: string,
+    sector_name: string | null,
     country_iso_code: string,
     value_is_percent: boolean,
     currency_iso_code: string,
