@@ -114,8 +114,21 @@ const DashbaordPage = () => {
       // Clear previous content
       d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
 
-      // first, check theres selected sources to render
-      if(!selectedSources || selectedSources.length == 0) return;
+      // if theres so sources, let the user know that no sources have been selected
+      if (!selectedSources || selectedSources.length == 0) {
+        const svg = d3.select(svgRef.current);
+        svg.selectAll('*').remove(); // Clear previous content
+
+        svg.append('text')
+          .attr('x', dimensions.width / 2)
+          .attr('y', (dimensions.height / 2) - 15)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '20px')
+          .style('fill', '#0F0F0F')
+          .text('No sources selected');
+
+        return;
+      }
 
       // fetch datapoints. ensure that the creation date utc property is of type Date
       const datapoints = (await GetDatapointsInSources(currentYear, period, selectedSources))
@@ -398,7 +411,8 @@ const DashbaordPage = () => {
     </section>
       </div>
       {/* Graph */}
-      <div ref={containerRef} className='w-full flex-1 min-h-[300px] z-50'>
+      <div ref={containerRef} className='w-full flex min-h-[300px] z-50'>
+       
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
     </section>
