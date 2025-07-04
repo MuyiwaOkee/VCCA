@@ -15,30 +15,26 @@ import { analytics_datapoint_response } from '@/types/response/analytics/analyti
 import { datapoints_response } from '@/types/response/analytics/datapoints_response';
 
 const GetAllSources = async () => {
-    try {
-    const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
-        method: 'GET',
-        headers:{
-            'Content-Type': 'Application/json'
-        }
-    });
-
-    if(!response.ok) {
-      switch (response.status) {
-        case 404:
-          throw new Error("No Sources Found");
-      
-        default:
-          throw new Error("Couldn't connect to server. Please try again");
+  const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
+      method: 'GET',
+      headers:{
+          'Content-Type': 'Application/json'
       }
-    }
+  });
 
-    const data:analytics_source_response[] = await response.json();
-
-    return data
-    } catch (error) {
-      throw new Error(`${error}`);
+  if(!response.ok) {
+    switch (response.status) {
+      case 404:
+        throw new Error("No Sources Found");
+    
+      default:
+        throw new Error("Issue with the server. Please try again");
     }
+  }
+
+  const data:analytics_source_response[] = await response.json();
+
+  return data
 }
 
 const GetDatapointsInSources = async (year: number, period: string, source_ids: string[]) => {
@@ -49,28 +45,41 @@ const GetDatapointsInSources = async (year: number, period: string, source_ids: 
         }
     });
 
+    if(!response.ok) {
+      console.log(`Status code error is: ${response.status}`);
+      switch (response.status) {
+        case 400:
+          throw new Error("invalid information provided");
+        
+        case 404:
+          throw new Error("No Sources Found");
+
+        case 422:
+          throw new Error("No data for the year provided");
+      
+        default:
+          throw new Error("Issue with the server. Please try again");
+      }
+    }
+
     const data:datapoints_response[] = await response.json();
 
-    return data
+    return data 
 }
 
 const GetSourcesItems = async () => {
-    try {
-      const analytic_sources = await GetAllSources();
+    const analytic_sources = await GetAllSources();
 
       const items:MultiselectItem[] = analytic_sources.map(({ category_name, sector_name, country_iso_code, stroke_hex, fill_hex, id }) => {
         return {
           id,
-          value: `${category_name}: ${sector_name ? sector_name + ',' : ''} ${country_iso_code}`,
+          value: `${category_name}: ${sector_name ? sector_name + ' - ' : ''} ${country_iso_code}`,
           strokeColor: stroke_hex,
           fill: fill_hex
         }
       });
 
       return items;
-    } catch (error) {
-      throw new Error(`${error}`);
-    }
   }
 
 const DashbaordPage = () => {
@@ -81,10 +90,15 @@ const DashbaordPage = () => {
   const [currentYear, setCurrentYear] = useQueryState('year', parseAsInteger.withDefault(maxYearValue));
   const [selectedSources, setSelectedSources] = useQueryState('sources', parseAsArrayOf(parseAsString.withDefault('Interest rate'), ';'));
 
-  const { data:analytic_sources } = useQuery({
+  const { data:analytic_sources, isError, error } = useQuery({
     queryFn: GetSourcesItems,
     queryKey: ["sources"]
   });
+
+  if(isError)
+    throw new Error(error.message);
+
+  const [datapointsError, setDatapointsError] = useState<Error | null>(null);
 
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
   const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
@@ -148,7 +162,8 @@ const DashbaordPage = () => {
         return;
       }
 
-      // fetch datapoints. ensure that the creation date utc property is of type Date
+      try {
+        // fetch datapoints. ensure that the creation date utc property is of type Date
       const datapoints = (await GetDatapointsInSources(currentYear, period, selectedSources))
         .map(series => ({
           ...series,
@@ -188,7 +203,7 @@ const DashbaordPage = () => {
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-        if( datapoints.length == 0) return;
+        if(datapoints.length == 0) return;
 
     // Get combined domain across all series (that are non percent values)
       const datapoints_continuous = datapoints.filter(({ is_value_percent }) => is_value_percent == false);
@@ -381,11 +396,17 @@ const DashbaordPage = () => {
                     tooltip.style("display", "none");
                   });
               });
+      } catch (error) {
+        setDatapointsError(error as Error);
+      }
     }
 
     RenderData();
     
   }, [selectedSources, dimensions, currentYear, period]);
+
+  if (datapointsError)
+    throw datapointsError; // This will trigger the error boundary and show error.tsx
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
