@@ -44,3 +44,10 @@ export const decrypt = async (session: string | undefined = "") => {
         console.log("failed to verify session");
     }
 }
+
+export const verifySession = async () => {
+    const cookie = (await cookies()).get('session')?.value; //get jwt if available
+    const session = await decrypt(cookie);
+
+    return session
+}

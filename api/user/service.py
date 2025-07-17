@@ -1,8 +1,9 @@
 from fastapi import HTTPException, status
+from auth.model import UserCredentialResponse
 from user.model import RegisterUserRequest
 from entities.user import Users
 from sqlalchemy.orm import Session
-from uuid import uuid4
+from uuid import uuid4, UUID
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError, DatabaseError
 
@@ -47,6 +48,41 @@ def register_user(db: Session, request: RegisterUserRequest):
             detail="Invalid data provided"
         )
         
+    except DatabaseError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service unavailable"
+        )
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+def get_user(db: Session, user_id: UUID):
+    try:
+        # raise a 400 response if information is missing
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User id not provided"
+            )
+    
+        user = db.query(Users).filter(Users.id == user_id).first()
+        
+        response = UserCredentialResponse(
+            id=user.id,
+            email=user.email,
+            role=user.role,
+            sector=user.sector
+        )
+        
+        return response
+    except HTTPException as e:
+        raise e
     except DatabaseError as e:
         db.rollback()
         raise HTTPException(
