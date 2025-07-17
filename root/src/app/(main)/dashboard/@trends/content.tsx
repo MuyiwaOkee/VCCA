@@ -3,14 +3,42 @@ import { DefaultContentCard, IconButtonProps } from '@/components/DefaultContent
 import { ErrorInput } from '@/components/ErrorInput'
 import { TextModalRef } from '@/components/TextModal'
 import { TopTooltip } from '@/components/Tooltip'
-import { VisaAddHigh, VisaCloseTiny, VisaFileUploadTiny, VisaInformationAltHigh } from '@visa/nova-icons-react'
+import { VisaAddLow, VisaCloseTiny, VisaFileUploadTiny, VisaInformationAltHigh } from '@visa/nova-icons-react'
 import { Button } from '@visa/nova-react'
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import React, { forwardRef, useActionState, useImperativeHandle, useRef, useState } from 'react'
+import ErrorCombobox, { ComboboxItem } from '@/components/ErrorCombobox'
+import { GetForecast } from './action'
 
 const TrendsModalContent = () => {
   const modalRef = useRef<TextModalRef>(null);
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([0]);
+
+  const [state, forecastAction, isPending] = useActionState(GetForecast, undefined);
+      const formRef = useRef<HTMLFormElement>(null!);
+      
+      const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
+          if(e.code === 'Enter') {
+              e.preventDefault();
+              formRef.current.requestSubmit();
+          }
+      };
   
   const cardText = "As of mid-2025, global economic growth is modest, with easing inflation and high interest rates. Developed economies are stabilizing, while emerging markets face mixed conditions. China is recovering slowly. Geopolitical tensions and uncertain demand continue to challenge supply chains, keeping the outlook cautious but less recession-prone than before."
+
+  const months: ComboboxItem[] = [
+    { value: 'January' },
+    { value: 'February' },
+    { value: 'March' },
+    { value: 'April' },
+    { value: 'May' },
+    { value: 'June' },
+    { value: 'July' },
+    { value: 'August' },
+    { value: 'September' },
+    { value: 'October' },
+    { value: 'November' },
+    { value: 'December' }
+  ]
 
   const iconButtons:IconButtonProps[] = [
     {
@@ -38,33 +66,34 @@ const TrendsModalContent = () => {
         {/* <div className='w-40'>
           <ErrorInput id='email' label='Year' isRequired errorText={undefined}/>
         </div> */}
-        <form action="" className='flex flex-row gap-4'>
-          <section className="self-stretch flex flex-col justify-start items-start gap-4">
-           <ErrorInput id='email' label='Month' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Year' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Disposable income' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Interest rate' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Unemployment rate' isRequired errorText={undefined}/>
+        <form ref={formRef} action={forecastAction} onKeyDown={HandleSubmit} className='inline-flex flex-col justify-start items-center gap-8'>
+          <div className='flex flex-row gap-4'>
+          {
+            selectedMonths.map((month) => {
+              return <section className="relative self-stretch flex flex-col justify-start items-start gap-4">
+                <div className='absolute top-0 left-0'>
+                  <ErrorCombobox id={`month-${months[month].value}`} label='month' isRequired items={months} errorText={undefined}/>
+                </div>
+                <div className='mt-20.5'>
+                  <ErrorInput id={`email-${months[month].value}`} label='Year' isRequired errorText={undefined}/>
+                </div>
+                <ErrorInput id={`income-${months[month].value}`} label='Disposable income' isRequired errorText={undefined}/>
+                <ErrorInput id={`interest-${months[month].value}`} label='Interest rate' isRequired errorText={undefined}/>
+                <ErrorInput id={`unemployment-${months[month].value}`} label='Unemployment rate' isRequired errorText={undefined}/>
           </section>
-          <section className="self-stretch flex flex-col justify-start items-start gap-4">
-           <ErrorInput id='email' label='Month' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Year' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Disposable income' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Interest rate' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Unemployment rate' isRequired errorText={undefined}/>
-          </section>
-          <section className="self-stretch flex flex-col justify-start items-start gap-4">
-           <ErrorInput id='email' label='Month' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Year' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Disposable income' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Interest rate' isRequired errorText={undefined}/>
-           <ErrorInput id='email' label='Unemployment rate' isRequired errorText={undefined}/>
-          </section>
+            })
+          }
           {/* Add new month btn */}
-          <section className="w-[172px] h-[346px] rounded-lg border-2 border-dashed border-[#1434CB] flex flex-col justify-center items-center cursor-pointer gap-2">
-            <VisaAddHigh/>
-            <p>Add Another Month</p>
-          </section>
+          {selectedMonths.length < 3 && <section className="w-[172px] h-[346px] rounded-lg border-2 border-dashed border-[#1434CB] flex flex-col justify-center items-center cursor-pointer gap-2" onClick={() => setSelectedMonths(prev => [...prev, prev.length])}>
+            <VisaAddLow/>
+            <p className='text-sm leading-snug'>Add Another Month</p>
+          </section>}
+          </div>
+          <div className="inline-flex justify-center items-start gap-8">
+            <Button>
+              {isPending ? 'getting predictions' : 'Get Forecast'}
+            </Button>
+          </div>   
         </form>
       </ForecastModel>
     </>
@@ -98,13 +127,6 @@ const ForecastModel = forwardRef<TextModalRef, Props>(({ children }, ref) => {
                 <h3 className="justify-start text-Color-Text-text text-2xl font-medium font-['Noto_Sans'] leading-loose">Next Quarters Forecast</h3>
                 <div className="self-stretch flex flex-col justify-start gap-8">
                     {children}
-                </div>
-                {/* Button(s) */}
-                <div className="inline-flex justify-center items-start gap-8">
-                    {/* Primary */}
-                    <Button>
-                      Get Forecast
-                    </Button>
                 </div>
             </section>
         </div>

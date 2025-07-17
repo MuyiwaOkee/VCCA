@@ -72,7 +72,7 @@ export const stateReducer = <ItemType,>(
     }, [selectedItem, ref]);
 
     return (
-    <Utility vFlexCol vGap={12} className='w-full'>
+    <Utility vFlexCol vGap={12} className='w-full z-70'>
       <Combobox>
         <DropdownContainer className="v-flex v-flex-col v-gap-4">
           <Label {...getLabelProps()}>{label} {isRequired ? '(required)' : ''}</Label>
