@@ -1,6 +1,5 @@
 import { datapoints_response } from "@/types/response/analytics/datapoints_response";
 
-
 // Maps the month text to a number
 type MonthName =
   | "January"
@@ -114,6 +113,8 @@ export const GetForecast = async (_prevState: any, formData: FormData) => {
         const data = (await response.json()) as datapoints_response;
 
         console.log('Here are the predictions', data);
+
+        return data
 
     } catch (error) {
         console.log(error)

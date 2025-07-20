@@ -1,5 +1,5 @@
 import React from 'react'
-import TrendsModalContent from './content'
+import TrendsModalContent from '../ForecastModal'
 
 function delayTwoSeconds(): Promise<void> {
   return new Promise((resolve) => {
@@ -12,7 +12,7 @@ function delayTwoSeconds(): Promise<void> {
 const TrendsModal = async () => {
     await delayTwoSeconds();
     
-    return <TrendsModalContent />
+    return null
 }
 
 export default TrendsModal

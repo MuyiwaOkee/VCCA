@@ -22,7 +22,7 @@ export default function RootLayout({
         </section>
         <section className="w-full inline-flex flex-col justify-start items-start gap-6">
           {children}
-          {trends}
+          {/* {trends} */}
         </section>
       </div>
     </div>

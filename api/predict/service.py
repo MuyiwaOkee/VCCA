@@ -40,8 +40,8 @@ def create_spending_predictions(db: Session, request: CreateSpendingPredictionRe
         ]
 
         response = datapoints_response(
-            stroke_hex='',
-            fill_hex='',
+            stroke_hex='#023436',
+            fill_hex='#06D6A0',
             is_value_percent=False,
             data=y_pred_float,
             source_id=None,

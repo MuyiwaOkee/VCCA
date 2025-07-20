@@ -13,6 +13,7 @@ import { GetSuffix } from '@/utils/GetSuffix';
 import { analytics_source_response } from '@/types/response/analytics/analytics_source_response';
 import { analytics_datapoint_response } from '@/types/response/analytics/analytics_datapoint_response';
 import { datapoints_response } from '@/types/response/analytics/datapoints_response';
+import ForecastModal, { ForecastModalProps } from './ForecastModal';
 
 const GetAllSources = async () => {
   const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -103,9 +104,11 @@ const DashbaordPage = () => {
   const [currentPriceInfomation, setCurrentPriceInfomation] = useState<{ value: number, percentChange: number, difference: number, valueType: 'Price' | 'Points' } | undefined>(undefined)
   const [multiSelectData, setMultiSelectData] = useState<MultiselectRef | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [forecasted_datapoints, setForecasted_datapoints] = useState<datapoints_response | undefined>(undefined);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const forecastModalRef = useRef<ForecastModalProps>(null!);
 
   const multiSelectRef = useCallback((value: MultiselectRef) => {
     value && setMultiSelectData(value);
@@ -404,7 +407,8 @@ const DashbaordPage = () => {
     RenderData();
     
   }, [selectedSources, dimensions, currentYear, period]);
-
+  
+  
   if (datapointsError)
     throw datapointsError; // This will trigger the error boundary and show error.tsx
   
@@ -450,10 +454,14 @@ const DashbaordPage = () => {
     </section>
       </div>
       {/* Graph */}
-      <div ref={containerRef} className='w-full flex min-h-[300px] z-50'>
-       
+      <div ref={containerRef} className='w-full flex h-[300px] z-50'>
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
+      <section>
+        <h3>Forecast</h3>
+        <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>
+        <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
+      </section>
     </section>
   )
 }
