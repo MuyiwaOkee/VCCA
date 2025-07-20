@@ -166,8 +166,14 @@ const DashbaordPage = () => {
       }
 
       try {
-        // fetch datapoints. ensure that the creation date utc property is of type Date
-      const datapoints = (await GetDatapointsInSources(currentYear, period, selectedSources))
+      // fetch datapoints. ensure that the creation date utc property is of type Date
+      const selectedSourcesDatapoints = await GetDatapointsInSources(currentYear, period, selectedSources);
+
+      const allDatapoints_raw = forecasted_datapoints !== undefined
+        ? [...selectedSourcesDatapoints, forecasted_datapoints]
+        : [...selectedSourcesDatapoints];
+
+      const datapoints = (allDatapoints_raw)
         .map(series => ({
           ...series,
           data: series.data.map(d => ({
@@ -406,7 +412,7 @@ const DashbaordPage = () => {
 
     RenderData();
     
-  }, [selectedSources, dimensions, currentYear, period]);
+  }, [selectedSources, forecasted_datapoints, dimensions, currentYear, period]);
   
   
   if (datapointsError)

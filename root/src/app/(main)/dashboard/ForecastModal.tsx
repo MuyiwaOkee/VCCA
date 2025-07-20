@@ -4,7 +4,7 @@ import { VisaAddLow, VisaCloseTiny, VisaFileUploadTiny, VisaInformationAltHigh }
 import { Button } from '@visa/nova-react'
 import React, { forwardRef, useActionState, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import ErrorCombobox, { ComboboxItem } from '@/components/ErrorCombobox'
-import { GetForecast } from './@trends/action'
+import { GetForecast } from './action'
 import { datapoints_response } from '@/types/response/analytics/datapoints_response'
 
 type Props = {
@@ -34,6 +34,16 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
 
     const [state, forecastAction, isPending] = useActionState(GetForecast, undefined);
     const formRef = useRef<HTMLFormElement>(null!);
+
+    const lastIsPending = useRef<boolean>(isPending);
+
+    useEffect(() => {
+      lastIsPending.current = isPending;
+
+      if(!lastIsPending.current && isPending) {
+        console.log('CLOSE THE MODAL')
+      }
+    }, [isPending]);
     
     const [isVisible, setIsVisible] = useState(false);
 
@@ -52,11 +62,6 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
             setIsVisible(show);
         }
     }));
-
-    useEffect(() => {
-      console.log('THE STATE CHANGED ')
-      setForecastedDatapoints(state);
-    }, [state])
     
     if (!isVisible) return null;
 
