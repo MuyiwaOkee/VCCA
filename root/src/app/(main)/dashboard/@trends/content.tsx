@@ -72,14 +72,14 @@ const TrendsModalContent = () => {
             selectedMonths.map((month) => {
               return <section className="relative self-stretch flex flex-col justify-start items-start gap-4">
                 <div className='absolute top-0 left-0'>
-                  <ErrorCombobox id={`month-${months[month].value}`} label='month' isRequired items={months} errorText={undefined}/>
+                  <ErrorCombobox id={`month_${month}`} label='month' isRequired items={months} errorText={undefined}/>
                 </div>
                 <div className='mt-20.5'>
-                  <ErrorInput id={`email-${months[month].value}`} label='Year' isRequired errorText={undefined}/>
+                  <ErrorInput id={`year_${month}`} label='Year' isRequired errorText={undefined}/>
                 </div>
-                <ErrorInput id={`income-${months[month].value}`} label='Disposable income' isRequired errorText={undefined}/>
-                <ErrorInput id={`interest-${months[month].value}`} label='Interest rate' isRequired errorText={undefined}/>
-                <ErrorInput id={`unemployment-${months[month].value}`} label='Unemployment rate' isRequired errorText={undefined}/>
+                <ErrorInput id={`income_${month}`} label='Disposable income' isRequired errorText={undefined}/>
+                <ErrorInput id={`interest_${month}`} label='Interest rate' isRequired errorText={undefined}/>
+                <ErrorInput id={`unemployment_${month}`} label='Unemployment rate' isRequired errorText={undefined}/>
           </section>
             })
           }

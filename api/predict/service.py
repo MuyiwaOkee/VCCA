@@ -1,5 +1,7 @@
+import datetime
 from xgboost import XGBRegressor
 from fastapi import HTTPException, status
+from analytics.model import datapoints_response, analytic_datapoint_reponse
 import pandas as pd
 from sqlalchemy.orm import Session
 from predict.model import CreateSpendingPredictionRequest
@@ -28,16 +30,23 @@ def create_spending_predictions(db: Session, request: CreateSpendingPredictionRe
 
         # send response
         y_pred_float = [
-            {
-                "month": request.month[index],
-                "value": float(y_hat)
-            }
+            analytic_datapoint_reponse(
+                value=float(y_hat),
+                creation_date_utc=datetime.date(request.year[index], request.month[index], 1),
+                is_forecast=True
+            )
             for index, y_hat in enumerate(y_pred)
+            if request.month[index] is not None
         ]
 
-        response = {
-            'predictions': y_pred_float
-        }
+        response = datapoints_response(
+            stroke_hex='',
+            fill_hex='',
+            is_value_percent=False,
+            data=y_pred_float,
+            source_id=None,
+            unit=''
+        )
 
         return response
     except Exception as e:

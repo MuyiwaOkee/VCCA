@@ -5,6 +5,6 @@ export type datapoints_response = {
     fill_hex: string;
     data: analytics_datapoint_response[];
     is_value_percent:Boolean;
-    source_id: string,
+    source_id?: string,
     unit: string
 }
