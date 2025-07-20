@@ -150,7 +150,7 @@ const DashbaordPage = () => {
       d3.select(svgRef.current).selectAll('*').remove() // Add this to remove default stroke;
 
       // if theres so sources, let the user know that no sources have been selected
-      if (!selectedSources || selectedSources.length == 0) {
+      if (!selectedSources || selectedSources.length == 0 && !forecasted_datapoints) {
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove(); // Clear previous content
 
@@ -167,7 +167,7 @@ const DashbaordPage = () => {
 
       try {
       // fetch datapoints. ensure that the creation date utc property is of type Date
-      const selectedSourcesDatapoints = await GetDatapointsInSources(currentYear, period, selectedSources);
+      const selectedSourcesDatapoints = selectedSources.length == 0 ? [] : await GetDatapointsInSources(currentYear, period, selectedSources);
 
       const allDatapoints_raw = forecasted_datapoints !== undefined
         ? [...selectedSourcesDatapoints, forecasted_datapoints]
@@ -276,7 +276,7 @@ const DashbaordPage = () => {
             .attr('text-anchor', 'start') // Left-align the text
             .style('font-size', '12px')
             .style('fill', '#666')
-            .text(`${labelText ? labelText : ''}, ${suffix}`);
+            .text(`${labelText ? `${labelText}, ` : ''} ${suffix}`);
       }
         
       if(allPercentValues.length > 0) {
@@ -451,6 +451,7 @@ const DashbaordPage = () => {
               return  <DataPointIndicator title={value} color={strokeColor} key={key}/>
             })
            }
+           {forecasted_datapoints && <DataPointIndicator title='Forcasted Spending' color='#023436'/>}
         </div>
         {/* First Indicator information */}
         {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">

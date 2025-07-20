@@ -30,24 +30,18 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
       { value: 'November' },
       { value: 'December' }
     ]
-    const [selectedMonths, setSelectedMonths] = useState<number[]>([0]);
+    const defaultSelectedMonths = [0];
+    const [selectedMonths, setSelectedMonths] = useState<number[]>(defaultSelectedMonths);
 
     const [state, forecastAction, isPending] = useActionState(GetForecast, undefined);
     const formRef = useRef<HTMLFormElement>(null!);
-
-    const lastIsPending = useRef<boolean>(isPending);
-
-    useEffect(() => {
-      lastIsPending.current = isPending;
-
-      if(!lastIsPending.current && isPending) {
-        console.log('CLOSE THE MODAL')
-      }
-    }, [isPending]);
     
     const [isVisible, setIsVisible] = useState(false);
 
-    const HandleOnClose = () => setIsVisible(false);
+    const HandleOnClose = () => {
+      setIsVisible(false);
+      setSelectedMonths(defaultSelectedMonths);
+    };
 
     const HandleSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {    
           if(e.code === 'Enter') {
@@ -62,6 +56,12 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
             setIsVisible(show);
         }
     }));
+
+    useEffect(() => {
+      setForecastedDatapoints(state);
+      HandleOnClose();
+    }, [state])
+    
     
     if (!isVisible) return null;
 
