@@ -467,6 +467,7 @@ const DashbaordPage = () => {
       <section>
         <h3>Forecast</h3>
         <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>
+        {forecasted_datapoints && <Button destructive colorScheme='tertiary' onClick={() => setForecasted_datapoints(undefined)}>Remove Forecast Spending</Button>}
         <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
       </section>
     </section>

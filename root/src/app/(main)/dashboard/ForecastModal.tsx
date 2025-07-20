@@ -95,6 +95,8 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
                         <VisaAddLow/>
                         <p className='text-sm leading-snug'>Add Another Month</p>
                       </section>}
+                      {selectedMonths.length == 1 && <section className="w-[172px] h-[346px] rounded-lg bg-[#4D4D4D]">
+                      </section>}
                       </div>
                       <div className="inline-flex justify-center items-start gap-8">
                         <Button>
