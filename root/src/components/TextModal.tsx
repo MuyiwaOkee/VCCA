@@ -12,7 +12,7 @@ type ButtonProps = {
     icon?: React.ReactNode,
 }
 
-type StateType = {
+export type StateType = {
     state: 'loading' | 'error' | 'viewing',
     message: string,
     progressValue?: number
@@ -28,11 +28,13 @@ type Props = {
 }
 
 export type TextModalRef = {
-    toggleModal: (show: boolean) => void
-}
+    toggleModal: (show: boolean) => void,
+    setState: (state: StateType) => void,
+} 
 
-const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, secondaryButton, notificationTitle, isOpen = false , onCloseFunc}, ref) => {
+const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClass, primaryButton, secondaryButton, notificationTitle, isOpen = false , onCloseFunc}, ref) => {
     const [isVisible, setIsVisible] = useState(isOpen);
+    const [stateClass, setStateClass] = useState(defaultStateClass);
 
     const HandleOnClose = () => {
         setIsVisible(false)
@@ -45,6 +47,9 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass, primaryButton, 
     useImperativeHandle(ref, () => ({
         toggleModal: (show: boolean) => {
             setIsVisible(show);
+        },
+        setState: (state: StateType) => {
+            setStateClass(state)
         }
     }));
 

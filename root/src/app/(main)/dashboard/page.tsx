@@ -14,6 +14,8 @@ import { analytics_source_response } from '@/types/response/analytics/analytics_
 import { analytics_datapoint_response } from '@/types/response/analytics/analytics_datapoint_response';
 import { datapoints_response } from '@/types/response/analytics/datapoints_response';
 import ForecastModal, { ForecastModalProps } from './ForecastModal';
+import TextModal, { TextModalRef } from '@/components/TextModal';
+import { GenerateForcastReport } from './GenerateForecastReport';
 
 const GetAllSources = async () => {
   const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -108,7 +110,9 @@ const DashbaordPage = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+
   const forecastModalRef = useRef<ForecastModalProps>(null!);
+  const reportModalRef = useRef<TextModalRef>(null!);
 
   const multiSelectRef = useCallback((value: MultiselectRef) => {
     value && setMultiSelectData(value);
@@ -417,6 +421,12 @@ const DashbaordPage = () => {
   
   if (datapointsError)
     throw datapointsError; // This will trigger the error boundary and show error.tsx
+
+  const HandleGenerateForcastReport = async () => {
+    await GenerateForcastReport({
+      setTextModalState: (state) => reportModalRef.current.setState(state)
+    })
+  }
   
   return (
     <section className='w-full h-full bg-white overflow-hidden'>
@@ -451,7 +461,7 @@ const DashbaordPage = () => {
               return  <DataPointIndicator title={value} color={strokeColor} key={key}/>
             })
            }
-           {forecasted_datapoints && <DataPointIndicator title='Forcasted Spending' color='#023436'/>}
+           {forecasted_datapoints && <DataPointIndicator title='Forecasted Spending' color='#023436'/>}
         </div>
         {/* First Indicator information */}
         {currentPriceInfomation && <div className="flex justify-start items-center gap-2.5">
@@ -464,12 +474,25 @@ const DashbaordPage = () => {
       <div ref={containerRef} className='w-full flex h-[300px] z-50'>
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
+      {/* Forecast UI buttons */}
       <section>
         <h3>Forecast</h3>
-        <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>
+        {!forecasted_datapoints && <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>}
+        {forecasted_datapoints && <Button onClick={() => {reportModalRef.current.toggleModal(true)
+          HandleGenerateForcastReport()
+        }}>Generate Forecast Report</Button>}
         {forecasted_datapoints && <Button destructive colorScheme='tertiary' onClick={() => setForecasted_datapoints(undefined)}>Remove Forecast Spending</Button>}
-        <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
       </section>
+      {/* Forecast modal */}
+      <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
+      {/* Forecasting report Modal */}
+      <TextModal ref={reportModalRef} notificationTitle='Report' stateClass={{
+        state: 'loading',
+        message: 'loading',
+        progressValue: 69
+      }} primaryButton={{
+        text: 'Loading'
+      }}/>
     </section>
   )
 }
