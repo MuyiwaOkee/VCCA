@@ -17,6 +17,7 @@ import ForecastModal, { ForecastModalProps } from './ForecastModal';
 import TextModal, { TextModalRef } from '@/components/TextModal';
 import { GenerateForcastReport } from './GenerateForecastReport';
 import { downloadTextAsPdf } from '@/utils/DownloadTextAsPdf';
+import { verifySession } from '@/lib/session';
 
 const GetAllSources = async () => {
   const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -86,6 +87,15 @@ const GetSourcesItems = async () => {
       return items;
   }
 
+  const GetUserRole = async () => {
+    const res = await fetch('/api/verify');
+
+    if (!res.ok) throw new Error('Failed to fetch user role');
+
+    const data = await res.json();
+    return data.role;
+  }
+
 const DashbaordPage = () => {
   // Search query params
   const maxYearValue = new Date().getFullYear(); //Gets the current year
@@ -97,6 +107,11 @@ const DashbaordPage = () => {
   const { data:analytic_sources, isError, error } = useQuery({
     queryFn: GetSourcesItems,
     queryKey: ["sources"]
+  });
+
+  const { data:user_role } = useQuery({
+    queryFn: GetUserRole,
+    queryKey: ["role"]
   });
 
   if(isError)
@@ -477,29 +492,31 @@ const DashbaordPage = () => {
         <svg ref={svgRef} className='w-full h-full'/>
       </div>
       {/* Forecast UI buttons */}
-      <section>
-        <h3>Forecast</h3>
-        {!forecasted_datapoints && <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>}
-        {forecasted_datapoints && <Button onClick={() => {reportModalRef.current.toggleModal(true)
-          HandleGenerateForcastReport()
-        }}>Generate Forecast Report</Button>}
-        {forecasted_datapoints && <Button destructive colorScheme='tertiary' onClick={() => setForecasted_datapoints(undefined)}>Remove Forecast Spending</Button>}
-      </section>
-      {/* Forecast modal */}
-      <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
-      {/* Forecasting report Modal */}
-      <TextModal ref={reportModalRef} notificationTitle='Report' stateClass={{
-        state: 'loading',
-        message: 'loading',
-        progressValue: 69
-      }} primaryButton={{
-        text: 'Download report',
-        onClickFunc: () => downloadTextAsPdf(reportModalRef.current.state.message)
-      }} 
-      secondaryButton={{
-        text: 'Alert partners',
-        onClickFunc: () => console.log('PARTNERS ALRTED')
-      }}/>
+      {user_role == 'Analyst (Internal)' && <>
+        <section>
+          <h3>Forecast</h3>
+          {!forecasted_datapoints && <Button colorScheme='secondary' onClick={() => forecastModalRef.current.toggleModal(true)}>Forecast Spending</Button>}
+          {forecasted_datapoints && <Button onClick={() => {reportModalRef.current.toggleModal(true)
+            HandleGenerateForcastReport()
+          }}>Generate Forecast Report</Button>}
+          {forecasted_datapoints && <Button destructive colorScheme='tertiary' onClick={() => setForecasted_datapoints(undefined)}>Remove Forecast Spending</Button>}
+        </section>
+        {/* Forecast modal */}
+        <ForecastModal ref={forecastModalRef} setForecastedDatapoints={setForecasted_datapoints}/>
+        {/* Forecasting report Modal */}
+        <TextModal ref={reportModalRef} notificationTitle='Report' stateClass={{
+          state: 'loading',
+          message: 'loading',
+          progressValue: 69
+        }} primaryButton={{
+          text: 'Download report',
+          onClickFunc: () => downloadTextAsPdf(reportModalRef.current.state.message)
+        }} 
+        secondaryButton={{
+          text: 'Alert partners',
+          onClickFunc: () => console.log('PARTNERS ALRTED')
+        }}/>
+      </>}
     </section>
   )
 }

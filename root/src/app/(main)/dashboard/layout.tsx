@@ -7,12 +7,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  notifications,
-  trends
+  notifications
 }: Readonly<{
   children: React.ReactNode,
-  notifications: React.ReactNode,
-  trends: React.ReactNode
+  notifications: React.ReactNode
 }>) {
   return (
     <div className="flex justify-center h-full">
@@ -22,7 +20,6 @@ export default function RootLayout({
         </section>
         <section className="w-full inline-flex flex-col justify-start items-start gap-6">
           {children}
-          {/* {trends} */}
         </section>
       </div>
     </div>
