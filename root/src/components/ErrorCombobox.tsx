@@ -109,7 +109,7 @@ export const stateReducer = <ItemType,>(
             </InputMessage>
           )}
         </DropdownContainer>
-        <ListboxContainer>
+        <ListboxContainer style={{ maxHeight: '200px', overflowY: 'auto' }}>
           <Listbox id={listboxId} {...listboxProps}>
             {items.map((item, index) => (
               <ListboxItem
