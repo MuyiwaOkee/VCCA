@@ -68,9 +68,9 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClas
                     <p className={cn("justify-start text-sm font-semibold font-['Noto_Sans'] leading-snug max-h-48 overflow-y-auto", stateClass.state == 'error' ? 'text-[#AD2929]' : 'text-black', stateClass.state === 'viewing' ? 'text-left' : 'text-center' )}>{stateClass.message}</p>
                 </div>
                 {/* Button(s) */}
-                <div className="inline-flex justify-center items-start gap-8">
+               {stateClass.state == 'viewing' && <div className="inline-flex justify-center items-start gap-8">
                     {/* Primary */}
-                    <Button destructive={stateClass.state !== 'viewing'} colorScheme={stateClass.state === 'loading' ? 'tertiary' : undefined} onClick={primaryButton.onClickFunc}>
+                    <Button destructive={stateClass.state !== 'viewing'} onClick={primaryButton.onClickFunc}>
                         {primaryButton.icon}
                         {primaryButton.text}
                     </Button>
@@ -79,7 +79,7 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClas
                         {secondaryButton.icon}
                         {secondaryButton.text}
                     </Button>}
-                </div>
+                </div>}
             </section>
         </div>
     )

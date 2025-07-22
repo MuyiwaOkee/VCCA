@@ -424,6 +424,7 @@ const DashbaordPage = () => {
 
   const HandleGenerateForcastReport = async () => {
     await GenerateForcastReport({
+      prediction: forecasted_datapoints!,
       setTextModalState: (state) => reportModalRef.current.setState(state)
     })
   }

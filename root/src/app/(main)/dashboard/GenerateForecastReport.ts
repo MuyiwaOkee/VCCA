@@ -1,7 +1,9 @@
 import { StateType } from "@/components/TextModal";
+import { datapoints_response } from "@/types/response/analytics/datapoints_response";
 import OpenAI from "openai";
 
 type GenerateForcastReportProps = {
+    prediction: datapoints_response,
     setTextModalState: (state: StateType) => void
 }
 
@@ -13,20 +15,30 @@ const openai = new OpenAI({
 
 const tokenLimit = 1000
 
-export const GenerateForcastReport = async ({ setTextModalState }: GenerateForcastReportProps) => {
+export const GenerateForcastReport = async ({ setTextModalState, prediction }: GenerateForcastReportProps) => {
   setTextModalState({
     state: 'loading',
-    message: 'Loading',
+    message: 'Generating report',
     progressValue: 0
   });
 
   let message = '';
   let tokensReceived = 0;
 
+  const prediction_formatted = prediction.data.map(({ creation_date_utc, value }, key) => {
+    return `${key}. ${creation_date_utc}: ${value} ,\n`
+  }).join();
+
+  console.log('Here are the predictions', prediction_formatted);
+
   const completion = await openai.chat.completions.create({
       messages: [
           // { role: "system", content: `` },
-          {role: "user", content: `Tell me more about how you work`}
+          {role: "user", content: `You are a finanical analyst. I am going to give to give you a list of predictons of monthly CHAPS uk credit spending on credit and debit cards across all catagorries. You are to take this data, and make business suggestions for VISA partners on how they should adjust theit spending and marketing strategies based on these predictions. 
+            
+          Here are the predictions, with the days of the start of each month and predictded value for that month: 
+          
+          ${prediction_formatted}`}
       ],
       model: "deepseek-chat",
       temperature: 0.5,
@@ -47,8 +59,6 @@ export const GenerateForcastReport = async ({ setTextModalState }: GenerateForca
       
       // Calculate progress (ensure it doesn't exceed 100%)
       const progress = Math.min(Math.floor((tokensReceived / tokenLimit) * 100), 100);
-
-      console.log(`Current Progress: ${progress}%`);
 
       setTextModalState({
         state: 'loading',
