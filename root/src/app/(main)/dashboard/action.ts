@@ -58,7 +58,12 @@ type RequestType = {
     unemployment_rate: (number | null)[]
 }
 
-export const GetForecast = async (_prevState: any, formData: FormData) => {
+type ForecaseStateType = {
+    data?: datapoints_response,
+    error?: string
+}
+
+export const GetForecast = async (_prevState: any, formData: FormData):Promise<ForecaseStateType> => {
     const rawFormData = Object.fromEntries(formData);
 
     // format the form data
@@ -98,25 +103,24 @@ export const GetForecast = async (_prevState: any, formData: FormData) => {
             body: JSON.stringify(request_body)
         });
 
-        if(!response.ok) 
-            switch (response.status) {
-                case 404 | 400 | 422:
-                    throw new Error("Invalid data prodvided");
-                    break;
-            
-                default:
-                    throw new Error("Problem with server. Please try again later");
-                    break;
-            }
+        if(!response.ok) {
+            const errorData = await response.json();
+            const detail = errorData.detail; // This will be "date has already past, the current month is 7"
+            throw new Error(detail);
+        }
 
         // check response
         const data = (await response.json()) as datapoints_response;
 
         console.log('Here are the predictions', data);
 
-        return data
+        return {
+            data
+        }
 
     } catch (error) {
-        console.log(error)
+        return {
+            error: `${error}`
+        }
     }
 }

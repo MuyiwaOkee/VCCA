@@ -40,7 +40,7 @@ def create_spending_predictions(db: Session, request: CreateSpendingPredictionRe
         if has_past_year:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail='date has already past'
+                detail='Please select a future month(s) to forecast'
             )
         
         current_month = datetime.datetime.now().month
@@ -49,7 +49,7 @@ def create_spending_predictions(db: Session, request: CreateSpendingPredictionRe
         if has_past_month:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f'date has already past, the current month is {current_month}'
+                detail=f'Please select a future month(s) to forecast'
             )
 
 

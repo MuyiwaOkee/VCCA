@@ -1,7 +1,7 @@
 "use client"
 import { ErrorInput } from '@/components/ErrorInput'
-import { VisaAddLow, VisaCloseTiny, VisaFileUploadTiny, VisaInformationAltHigh } from '@visa/nova-icons-react'
-import { Button } from '@visa/nova-react'
+import { VisaAddLow, VisaCloseTiny, VisaErrorTiny, VisaFileUploadTiny, VisaInformationAltHigh } from '@visa/nova-icons-react'
+import { Button, InputMessage } from '@visa/nova-react'
 import React, { forwardRef, useActionState, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import ErrorCombobox, { ComboboxItem } from '@/components/ErrorCombobox'
 import { GetForecast } from './action'
@@ -58,7 +58,9 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
     }));
 
     useEffect(() => {
-      setForecastedDatapoints(state);
+      if(!state?.data) return;
+
+      setForecastedDatapoints(state.data);
       HandleOnClose();
     }, [state])
     
@@ -73,6 +75,9 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
                 </button>
                 <h3 className="justify-start text-Color-Text-text text-2xl font-medium font-['Noto_Sans'] leading-loose">Next Quarters Forecast</h3>
                 <div className="self-stretch flex flex-col justify-start gap-8">
+                  {state?.error && 
+                  <p className="px-4 self-stretch justify-start text-[#AD2929] text-sm font-normal font-['Noto_Sans'] leading-4">{state?.error}</p>
+                  }
                     <form ref={formRef} action={forecastAction} onKeyDown={HandleSubmit} className='inline-flex flex-col justify-start items-center gap-8'>
                       <div className='flex flex-row gap-4'>
                       {
