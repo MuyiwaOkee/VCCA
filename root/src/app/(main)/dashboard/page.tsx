@@ -17,7 +17,6 @@ import ForecastModal, { ForecastModalProps } from './ForecastModal';
 import TextModal, { TextModalRef } from '@/components/TextModal';
 import { GenerateForcastReport } from './GenerateForecastReport';
 import { downloadTextAsPdf } from '@/utils/DownloadTextAsPdf';
-import { verifySession } from '@/lib/session';
 
 const GetAllSources = async () => {
   const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -93,6 +92,8 @@ const GetSourcesItems = async () => {
     if (!res.ok) throw new Error('Failed to fetch user role');
 
     const data = await res.json();
+
+    console.log(data);
     return data.role;
   }
 
