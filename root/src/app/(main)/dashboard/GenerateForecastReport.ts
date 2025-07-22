@@ -4,7 +4,7 @@ import OpenAI from "openai";
 
 type GenerateForcastReportProps = {
     prediction: datapoints_response,
-    setTextModalState: (state: StateType) => void
+    setTextModalState: (state: StateType) => void,
 }
 
 const openai = new OpenAI({
@@ -18,7 +18,7 @@ const tokenLimit = 1000
 export const GenerateForcastReport = async ({ setTextModalState, prediction }: GenerateForcastReportProps) => {
   setTextModalState({
     state: 'loading',
-    message: 'Generating report',
+    message: 'Accessing AI',
     progressValue: 0
   });
 
@@ -28,8 +28,6 @@ export const GenerateForcastReport = async ({ setTextModalState, prediction }: G
   const prediction_formatted = prediction.data.map(({ creation_date_utc, value }, key) => {
     return `${key}. ${creation_date_utc}: ${value} ,\n`
   }).join();
-
-  console.log('Here are the predictions', prediction_formatted);
 
   const completion = await openai.chat.completions.create({
       messages: [

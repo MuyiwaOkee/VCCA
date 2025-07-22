@@ -30,6 +30,7 @@ type Props = {
 export type TextModalRef = {
     toggleModal: (show: boolean) => void,
     setState: (state: StateType) => void,
+    state: StateType
 } 
 
 const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClass, primaryButton, secondaryButton, notificationTitle, isOpen = false , onCloseFunc}, ref) => {
@@ -50,7 +51,8 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClas
         },
         setState: (state: StateType) => {
             setStateClass(state)
-        }
+        },
+        state: stateClass
     }));
 
     if (!isVisible) return null;
@@ -75,7 +77,7 @@ const TextModal = forwardRef<TextModalRef, Props>(({ stateClass:defaultStateClas
                         {primaryButton.text}
                     </Button>
                     {/* Secondary */}
-                    {secondaryButton && <Button colorScheme='tertiary'>
+                    {secondaryButton && <Button colorScheme='tertiary' onClick={secondaryButton.onClickFunc}>
                         {secondaryButton.icon}
                         {secondaryButton.text}
                     </Button>}

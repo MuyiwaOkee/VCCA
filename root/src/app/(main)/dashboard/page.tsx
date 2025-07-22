@@ -16,6 +16,7 @@ import { datapoints_response } from '@/types/response/analytics/datapoints_respo
 import ForecastModal, { ForecastModalProps } from './ForecastModal';
 import TextModal, { TextModalRef } from '@/components/TextModal';
 import { GenerateForcastReport } from './GenerateForecastReport';
+import { downloadTextAsPdf } from '@/utils/DownloadTextAsPdf';
 
 const GetAllSources = async () => {
   const response = await fetch('http://127.0.0.1:8000/analytics/sources/all', {
@@ -492,7 +493,12 @@ const DashbaordPage = () => {
         message: 'loading',
         progressValue: 69
       }} primaryButton={{
-        text: 'Loading'
+        text: 'Download report',
+        onClickFunc: () => downloadTextAsPdf(reportModalRef.current.state.message)
+      }} 
+      secondaryButton={{
+        text: 'Alert partners',
+        onClickFunc: () => console.log('PARTNERS ALRTED')
       }}/>
     </section>
   )
