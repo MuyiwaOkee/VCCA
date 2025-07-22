@@ -26,7 +26,8 @@ type Props = {
   id: string,
   label: string
   isRequired?: boolean,
-  errorText: string | undefined
+  errorText: string | undefined,
+  defaultItemIndex?: number
 }
 
 export const itemToString = (item: ComboboxItem | null) => (item ? item.value : '');
@@ -43,7 +44,7 @@ export const stateReducer = <ItemType,>(
       }
     : changes;
 
-  const ErrorCombobox = forwardRef<string | null, Props>(({ items, id, label, isRequired, errorText }: Props, ref) => {
+  const ErrorCombobox = forwardRef<string | null, Props>(({ items, id, label, isRequired, errorText, defaultItemIndex }: Props, ref) => {
     const {
     getInputProps,
     getItemProps,
@@ -59,6 +60,7 @@ export const stateReducer = <ItemType,>(
     items,
     itemToString,
     stateReducer,
+    initialSelectedItem: defaultItemIndex ? items[defaultItemIndex] : null,
   });
   const { id: listboxId, ...listboxProps } = getMenuProps();
 

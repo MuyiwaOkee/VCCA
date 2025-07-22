@@ -9,15 +9,16 @@ type Props = {
     isRequired?: boolean,
     description?: string
     errorText: string | undefined,
-    autocomplete?: string
+    autocomplete?: string,
+    defaultValue?: string | number
 }
 
-const DEFAULT_INPUT_STATE = {
-  value: '',
-  error: false,
-};
+export const ErrorInput = ({ id, label, isRequired, description, errorText, autocomplete, defaultValue }: Props) => {
+  const DEFAULT_INPUT_STATE = {
+    value: defaultValue ? defaultValue : '',
+    error: false,
+  };
 
-export const ErrorInput = ({ id, label, isRequired, description, errorText, autocomplete }: Props) => {
   const [inputState, setInputState] = useState(DEFAULT_INPUT_STATE);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +42,7 @@ export const ErrorInput = ({ id, label, isRequired, description, errorText, auto
             id={id}
             type="text"
             name={id}
+            defaultValue={defaultValue}
             value={inputState.value}
             onChange={handleInputChange}
             autoComplete={autocomplete}

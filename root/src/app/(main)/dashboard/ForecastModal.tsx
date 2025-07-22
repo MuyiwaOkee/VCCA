@@ -79,10 +79,10 @@ const ForecastModal = forwardRef<ForecastModalProps, Props>(({ setForecastedData
                         selectedMonths.map((month) => {
                           return <section className="relative self-stretch flex flex-col justify-start items-start gap-4">
                             <div className='absolute top-0 left-0'>
-                              <ErrorCombobox id={`month_${month}`} label='month' isRequired items={months} errorText={undefined}/>
+                              <ErrorCombobox id={`month_${month}`} label='month' isRequired items={months} errorText={undefined} defaultItemIndex={new Date().getMonth() + month}/>
                             </div>
                             <div className='mt-20.5'>
-                              <ErrorInput id={`year_${month}`} label='Year' isRequired errorText={undefined}/>
+                              <ErrorInput id={`year_${month}`} label='Year' isRequired errorText={undefined} defaultValue={new Date().getFullYear()}/>
                             </div>
                             <ErrorInput id={`income_${month}`} label='Disposable income' isRequired errorText={undefined}/>
                             <ErrorInput id={`interest_${month}`} label='Interest rate' isRequired errorText={undefined}/>
