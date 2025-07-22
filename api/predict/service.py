@@ -5,6 +5,7 @@ from analytics.model import datapoints_response, analytic_datapoint_reponse
 import pandas as pd
 from sqlalchemy.orm import Session
 from predict.model import CreateSpendingPredictionRequest
+from calendar import month_name
 
 def load_model():
     model = XGBRegressor()
@@ -14,6 +15,60 @@ def load_model():
 
 def create_spending_predictions(db: Session, request: CreateSpendingPredictionRequest):
     try:
+        # check the data in the request body
+        # 1. Check theres no duplicate months
+        months_no_null = [m for m in request.month if m is not None]
+        months_no_null_len = len(months_no_null)
+
+        if months_no_null_len == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invalid months'
+            )
+
+        # Make a set and get its length
+        if len(set(months_no_null)) != months_no_null_len:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Duplicate month'
+            )
+        
+        # 2. Check for predictions for past dates
+        current_year = datetime.datetime.now().year
+        has_past_year = any(y is not None and y < current_year for y in request.year)
+
+        if has_past_year:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='date has already past'
+            )
+        
+        current_month = datetime.datetime.now().month
+        has_past_month = any(y is not None and y < current_month for y in request.month)
+
+        if has_past_month:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'date has already past, the current month is {current_month}'
+            )
+
+
+        # 3. Check for incomplete data
+        for index, month in enumerate(request.month):
+            if month == None:
+                continue
+
+            mean_desposible_income = request.mean_desposible_income[index]
+            interest_rate = request.interest_rate[index]
+            unemployment_rate = request.unemployment_rate[index]
+
+            if unemployment_rate == None or interest_rate == None or mean_desposible_income == None:
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f'incomplete data needed to predict a spending value for the month of {month_name[month]}'
+            )
+
+
         # Load model
         model = load_model()
 
@@ -49,6 +104,8 @@ def create_spending_predictions(db: Session, request: CreateSpendingPredictionRe
         )
 
         return response
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
