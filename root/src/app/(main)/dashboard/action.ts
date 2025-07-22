@@ -33,19 +33,19 @@ const monthToNumber: Record<MonthName, number> = {
 
 
 type ForcastDataEntry = {
-    year_0: number;
+    year_0: number| null;
     year_1: number | null;
     year_2: number| null;
-    income_0: number;
+    income_0: number| null;
     income_1: number| null;
     income_2: number| null;
-    interest_0: number;
+    interest_0: number| null;
     interest_1: number| null;
     interest_2: number| null;
-    month_0: number;
+    month_0: number| null;
     month_1: number| null;
     month_2: number| null;
-    unemployment_0: number;
+    unemployment_0: number| null;
     unemployment_1: number| null;
     unemployment_2: number| null;
 }
@@ -68,19 +68,19 @@ export const GetForecast = async (_prevState: any, formData: FormData):Promise<F
 
     // format the form data
     const formDataObject: ForcastDataEntry = {
-        year_0: Number(rawFormData.year_0),
+        year_0:rawFormData.year_0 ? Number(rawFormData.year_0) : null,
         year_1: rawFormData.year_1 ? Number(rawFormData.year_1) : null,
         year_2: rawFormData.year_2 ? Number(rawFormData.year_2) : null,
-        income_0: Number(rawFormData.income_0),
+        income_0:rawFormData.income_0 ? Number(rawFormData.income_0) : null,
         income_1: rawFormData.income_1 ? Number(rawFormData.income_1) : null,
         income_2: rawFormData.income_2 ? Number(rawFormData.income_2) : null,
-        interest_0: Number(rawFormData.interest_0),
+        interest_0:rawFormData.interest_0 ? Number(rawFormData.interest_0) : null,
         interest_1: rawFormData.interest_1 ? Number(rawFormData.interest_1) : null,
         interest_2: rawFormData.interest_2 ? Number(rawFormData.interest_2) : null,
-        month_0: monthToNumber[String(rawFormData.month_0)],
+        month_0:rawFormData.month_0 ? monthToNumber[String(rawFormData.month_0)] : null,
         month_1: rawFormData.month_1 ? monthToNumber[String(rawFormData.month_1)] : null,
         month_2: rawFormData.month_2 ? monthToNumber[String(rawFormData.month_2)] : null,
-        unemployment_0: Number(rawFormData.unemployment_0),
+        unemployment_0: rawFormData.unemployment_0 ? Number(rawFormData.unemployment_0) : null,
         unemployment_1: rawFormData.unemployment_1 ? Number(rawFormData.unemployment_1) : null,
         unemployment_2: rawFormData.unemployment_2 ? Number(rawFormData.unemployment_2) : null,
     };
